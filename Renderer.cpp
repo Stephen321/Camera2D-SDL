@@ -67,10 +67,14 @@ void Renderer::drawRect(SDL_Rect r, const Colour& colour) const
 {
 	//r = applyCameraTransformation(r);
 
-	m_camera->worldToScreen(r);
+
+	//m_camera->screenToWorld(r);
 	
-	setDrawColour(colour);
-	SDL_RenderFillRect(m_renderer, &r);
-	setDrawColour(0,0,0,255);
-	SDL_RenderDrawRect(m_renderer, &r);
+	if (m_camera->worldToScreen(r))
+	{
+		setDrawColour(colour);
+		SDL_RenderFillRect(m_renderer, &r);
+		setDrawColour(0, 0, 0, 255);
+		SDL_RenderDrawRect(m_renderer, &r);
+	}
 }

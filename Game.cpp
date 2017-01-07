@@ -30,16 +30,17 @@ bool Game::initialize(const char* title, int width, int height, int flags)
 
 	m_camera.init(width, height, m_renderer.getSDLRenderer());
 
+	int size = 20;
 	Vector2f pos;
 	for (int y = 0; y < 30; y++)
 	{
 		for (int x = 0; x < 30; x++)
 		{
-			m_tiles.push_back({ (int)pos.x , (int)pos.y , 50, 50 });
-			pos.x += 50;
+			m_tiles.push_back({ (int)pos.x , (int)pos.y , size, size });
+			pos.x += size;
 		}
 		pos.x = 0;
-		pos.y += 50;
+		pos.y += size;
 	}
 
 	return true;
@@ -127,16 +128,18 @@ void Game::handleEvents()
 		case SDL_MOUSEWHEEL:
 			if (event.wheel.y < 0)
 			{
+				m_camera.zoom(1);
 			}
 			else if (event.wheel.y > 0)
 			{
+				m_camera.zoom(-1);
 			}
 			break;
 		case SDL_MOUSEMOTION:
 			//TODO: print this out on the screen
-			//Camera2D::Point p(event.motion.x, event.motion.y);
-			//p = m_camera.screenToWorld(p);
-			//std::cout << "Mosue X: " << p.x << " , " << p.y << std::endl;
+			Camera2D::Point p(event.motion.x, event.motion.y);
+			p = m_camera.screenToWorld(p);
+			std::cout << "Mosue X: " << p.x << " , " << p.y << std::endl;
 			break;
 		}
 	}
