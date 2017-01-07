@@ -15,6 +15,7 @@ bool Renderer::initialize(const Camera2D::Camera* camera, const char* title, int
 		m_renderer = SDL_CreateRenderer(m_window, -1, 0);
 		if (m_renderer != 0)
 		{
+			SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND);
 			SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
 			m_camera = camera;
 			return true;
@@ -68,7 +69,6 @@ void Renderer::drawRect(SDL_Rect r, const Colour& colour) const
 
 	m_camera->worldToScreen(r);
 	
-	SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND);
 	setDrawColour(colour);
 	SDL_RenderFillRect(m_renderer, &r);
 	setDrawColour(0,0,0,255);

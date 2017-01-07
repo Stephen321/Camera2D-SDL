@@ -8,7 +8,7 @@ using namespace std;
 namespace Camera2D
 {
 	typedef struct Vector2 {
-		Vector2(int _x, int _y)
+		Vector2(float _x, float _y)
 			: x(_x), y(_y) {};
 		Vector2()
 			: x(0), y(0) {};
@@ -23,24 +23,30 @@ namespace Camera2D
 			y += v.y;
 			return *this;
 		};
-		int x;
-		int y;
+		Vector2& operator-=(const Vector2& v) {
+			x -= v.x;
+			y -= v.y;
+			return *this;
+		};
+		Vector2 normalize() {
+			if (length() == 0.f)
+				return Vector2();
+			Vector2 v(x, y);
+			v.x /= length();
+			v.y /= length();
+			return v;
+		};
+		float length() {
+			return sqrt(x* x + y * y);
+		}
+		float x;
+		float y;
 	} Size, Point;
 
-	//struct Rectangle {
-	//	Rectangle(int _x, int _y, int _width, int _height)
-	//		: x(_x), y(_y), width(_width), height(_height) {};
-	//	Rectangle()
-	//		: x(0), y(0), width(0), height(0) {};
-	//	int x;
-	//	int y;
-	//	int width;
-	//	int height;
-	//};
-
-	const static float DEFAULT_ACCEL = 5.f;
-	const static float DEFAULT_MAX_VEL = 10.f;
-	const static float DEFAULT_DRAG = 0.6f;
+	const static float DEFAULT_ACCEL = 100.f; //every second how much you change velocity by
+	const static float DEFAULT_MAX_VEL = 200.f; //how fast you move in a second
+	const static float DEFAULT_DRAG = 0.9f;
+	const static float MIN_VEL = 5.f;
 
 	class Camera
 	{
@@ -51,11 +57,17 @@ namespace Camera2D
 		void setPosition(const Point& p);
 
 		bool worldToScreen(SDL_Rect& r) const;
-		//SDL_Rect screenToWorld(const SDL_Rect& r);
+		bool worldToScreen(Point& p) const;
+
+		SDL_Rect screenToWorld(const SDL_Rect& sr) const;
+		Point screenToWorld(const Point& sp) const;
 
 		void setMotionProps(float accelerationRate = DEFAULT_ACCEL, float maxVelocity = DEFAULT_MAX_VEL, float drag = DEFAULT_DRAG);
 		void pan(int xDir, int yDir);
+		void panX(int xDir);
+		void panY(int yDir);
 		void update(float deltaTime);
+		void render();
 		void moveBy(float x, float y);
 
 	private:
