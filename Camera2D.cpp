@@ -1,14 +1,17 @@
 #include "Camera2D.h"
 
 Camera2D::Camera::Camera()
-	: m_accelerationRate(DEFAULT_ACCEL),
-	m_maxVelocity(DEFAULT_MAX_VEL),
-	m_drag(DEFAULT_DRAG),
-	m_zoom(1.f),
-	m_zoomSpeed(DEFAULT_ZOOM_SPEED),
-	m_minZoom(DEFAULT_MIN_ZOOM),
-	m_maxZoom(DEFAULT_MAX_ZOOM),
-	m_snapBackSpeed(DEFAULT_ZOOM_SNAP)
+	: m_accelerationRate(DEFAULT_ACCEL)
+	, m_maxVelocity(DEFAULT_MAX_VEL)
+	, m_drag(DEFAULT_DRAG)
+	, m_zoom(1.f)
+	, m_zoomSpeed(DEFAULT_ZOOM_SPEED)
+	, m_zoomToSpeed(DEFAULT_ZOOMTO_SPEED)
+	, m_minZoom(DEFAULT_MIN_ZOOM)
+	, m_maxZoom(DEFAULT_MAX_ZOOM)
+	, m_snapBackSpeed(DEFAULT_ZOOM_SNAP)
+	, m_zoomTarget(0.f)
+	, m_zoomToActive(false)
 {
 }
 
@@ -50,15 +53,7 @@ bool Camera2D::Camera::worldToScreen(SDL_Rect& r) const
 	r.w *= xScale;
 	r.h *= yScale;
 
-
-	//pixel_x = (TILE_SIZE*zoom * getPosX() * 0.5) + (TILE_SIZE*zoom * getPosY() * 0.5) - cameraoffset_x; //pixel
-	//float pos_x = (x + cameraoffset_x + 2.0*(y + cameraoffset_y)) / (TILE_SIZE*zoom) - 1.5; //iso
-	//zoom around centre of each rectangle speratlely
-	//r.x = (int)r.x - (r.w * m_zoom - r.w) / 2;
-	//r.y = (int)r.y - (r.h * m_zoom - r.h) / 2;
-	//r.w = (int)r.w * m_zoom;
-	//r.h = (int)r.h * m_zoom;
-
+	//TODO fix this
 	return true;
 	bool visible = false;
 	if (r.x <= m_bounds.w && r.x + r.w >= 0.f &&
@@ -120,9 +115,10 @@ void Camera2D::Camera::setMotionProps(float accelerationRate, float maxVelocity,
 	m_drag = drag;
 }
 
-void Camera2D::Camera::setZoomProps(float zoomSpeed, float minZoom, float maxZoom, float snapBackSpeed)
+void Camera2D::Camera::setZoomProps(float zoomSpeed, float zoomToSpeed, float minZoom, float maxZoom, float snapBackSpeed)
 {
 	m_zoomSpeed = zoomSpeed;
+	m_zoomToSpeed = zoomToSpeed;
 	m_minZoom = minZoom;
 	m_maxZoom = maxZoom;
 	m_snapBackSpeed = snapBackSpeed;
@@ -152,31 +148,41 @@ void Camera2D::Camera::panY(int yDir)
 
 void Camera2D::Camera::zoom(int dir)
 {
+	m_zoomToActive = false;
 	m_zoomDirection = dir;
 	m_zoom += m_zoomSpeed * m_zoomDirection;
-	if (m_zoom < m_maxZoom && m_maxZoom != -1) //TODO check if -1 means infinite
-	{
-		m_zoom = m_maxZoom; //snap back here
-	}
-	else if (m_zoom > m_minZoom)
-	{
-		m_zoom = m_minZoom; //snap here
-	}
-	else if (m_zoom < 0)
-	{
-		m_zoom = 0;
-	}
-	Point centre(m_bounds.x + m_bounds.w * 0.5f, m_bounds.y + m_bounds.h * 0.5f); //centre before zoom
-	m_bounds.w = (int)m_windowWidth * m_zoom;
-	m_bounds.h = (int)m_windowHeight * m_zoom;
 
-	m_bounds.x = (int)(centre.x - m_bounds.w * 0.5f);
-	m_bounds.y = (int)(centre.y - m_bounds.h * 0.5f);
+	if (m_zoom < m_maxZoom) 
+	{
+		m_zoom = m_maxZoom; //TODO: snap back here
+	}
+	else if (m_zoom > m_minZoom && m_minZoom != -1)
+	{
+		m_zoom = m_minZoom; //TODO: snap here as well
+	}
+	else if (m_zoom < m_zoomSpeed) //if zoom set to 0 or less then nothing will display so set to change amount
+	{
+		m_zoom = m_zoomSpeed;
+	}
 
+	calculateBounds();
+}
 
-	m_position.x = m_bounds.x;
-	m_position.y = m_bounds.y;
-	cout << "x: " << m_bounds.x << " ,y: " << m_bounds.y << " ,w: " << m_bounds.w << " ,h: " << m_bounds.h << endl;
+void Camera2D::Camera::zoomTo(float target)
+{
+	target = (target < 0.f) ? m_zoomSpeed : target;
+
+	m_zoomToActive = true;
+	m_zoomDirection = (target - m_zoom > 0) ? 1 : -1;
+	if (target < m_maxZoom)
+	{
+		target = m_maxZoom;
+	}
+	else if (m_zoom > m_minZoom && m_minZoom != -1)
+	{
+		target = m_minZoom;
+	}
+	m_zoomTarget = target;
 }
 
 void Camera2D::Camera::update(float deltaTime)
@@ -226,6 +232,34 @@ void Camera2D::Camera::updateMotion(float deltaTime)
 
 void Camera2D::Camera::updateZoom(float deltaTime)
 {
+	if (m_zoomToActive)
+	{
+		m_zoom += m_zoomToSpeed * m_zoomDirection; 
+		if ((m_zoomDirection != -1 && m_zoom > m_zoomTarget) ||
+			(m_zoomDirection != 1 && m_zoom < m_zoomTarget))
+		{
+			m_zoom = m_zoomTarget;
+			m_zoomToActive = false;
+			m_zoomDirection = 0;
+		}
+		calculateBounds();
+	}
+}
+
+void Camera2D::Camera::calculateBounds()
+{
+	//problem with less than zero or x and y not changing when using zoom to
+	Point centre(m_bounds.x + m_bounds.w * 0.5f, m_bounds.y + m_bounds.h * 0.5f); //centre before zoom
+	m_bounds.w = (int)m_windowWidth * m_zoom;
+	m_bounds.h = (int)m_windowHeight * m_zoom;
+
+	m_position.x = (int)(centre.x - m_bounds.w * 0.5f);
+	m_position.y = (int)(centre.y - m_bounds.h * 0.5f);
+
+	m_bounds.x = (int)m_position.x;
+	m_bounds.y = (int)m_position.y;
+
+	cout << "bounds x: " << m_bounds.x << " ,y: " << m_bounds.y << " ,w: " << m_bounds.w << " ,h: " << m_bounds.h << endl;
 }
 
 void Camera2D::Camera::render()
@@ -237,14 +271,3 @@ void Camera2D::Camera::moveBy(float x, float y)
 	m_bounds.x += x;
 	m_bounds.y += y;
 }
-
-//SDL_Rect Camera2D::Camera::screenToWorld(const SDL_Rect& r)
-//{
-//
-//	Point2D p = screenToWorld(r.pos);
-//
-//	float ww = r.size.w*(viewportSize.w / windowSize.w);
-//	float wh = -r.size.h*(viewportSize.h / windowSize.h);
-//
-//	return Rect(p, Size2D(ww, wh));
-//}

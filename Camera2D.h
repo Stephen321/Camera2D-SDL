@@ -49,6 +49,7 @@ namespace Camera2D
 	const float MIN_VEL = 5.f;
 
 	const float DEFAULT_ZOOM_SPEED = 0.01f;
+	const float DEFAULT_ZOOMTO_SPEED = 0.0001f;
 	const float DEFAULT_MIN_ZOOM = 1.5f;
 	const float DEFAULT_MAX_ZOOM = 0.5f; 
 	const float DEFAULT_ZOOM_SNAP = 100.f;
@@ -68,12 +69,14 @@ namespace Camera2D
 		Point screenToWorld(const Point& sp) const;
 
 		void setMotionProps(float accelerationRate = DEFAULT_ACCEL, float maxVelocity = DEFAULT_MAX_VEL, float drag = DEFAULT_DRAG);
-		void setZoomProps(float zoomSpeed = DEFAULT_ZOOM_SPEED, float minZoom = DEFAULT_MIN_ZOOM, float maxZoom = DEFAULT_MAX_ZOOM, float snapBackSpeed = DEFAULT_ZOOM_SNAP);
+		void setZoomProps(float zoomSpeed = DEFAULT_ZOOM_SPEED, float zoomToSpeed = DEFAULT_ZOOMTO_SPEED, float minZoom = DEFAULT_MIN_ZOOM,
+						  float maxZoom = DEFAULT_MAX_ZOOM, float snapBackSpeed = DEFAULT_ZOOM_SNAP);
 		void setZoomMinMax(float min = -1, float max = -1); //default to unlimited
 		void pan(int xDir, int yDir);
 		void panX(int xDir);
 		void panY(int yDir);
 		void zoom(int zoomDir);
+		void zoomTo(float target);
 		void update(float deltaTime);
 		void render();
 		void moveBy(float x, float y);
@@ -81,6 +84,7 @@ namespace Camera2D
 	private:
 		void updateMotion(float deltaTime);
 		void updateZoom(float deltaTime);
+		void calculateBounds();
 
 		SDL_Rect m_bounds;
 		SDL_Renderer* m_renderer;
@@ -100,8 +104,11 @@ namespace Camera2D
 		float m_zoom;
 		int m_zoomDirection;
 		float m_zoomSpeed;
+		float m_zoomToSpeed;
 		float m_minZoom; //how far out we can zoom
 		float m_maxZoom; //how far in to zoom
 		float m_snapBackSpeed;
+		bool m_zoomToActive;
+		float m_zoomTarget;
 	};
 }

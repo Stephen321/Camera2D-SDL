@@ -121,6 +121,9 @@ void Game::handleEvents()
 			case SDLK_RIGHT:
 				m_camera.panX(0);
 				break;
+			case SDLK_z:
+				m_camera.zoomTo(0.f);
+				break;
 			default:
 				break;
 			}
@@ -136,10 +139,10 @@ void Game::handleEvents()
 			}
 			break;
 		case SDL_MOUSEMOTION:
-			//TODO: print this out on the screen
-			Camera2D::Point p(event.motion.x, event.motion.y);
-			p = m_camera.screenToWorld(p);
-			std::cout << "Mosue X: " << p.x << " , " << p.y << std::endl;
+			//debug
+			//Camera2D::Point p(event.motion.x, event.motion.y);
+			//p = m_camera.screenToWorld(p);
+			//std::cout << "Mosue X: " << p.x << " , " << p.y << std::endl;
 			break;
 		}
 	}
