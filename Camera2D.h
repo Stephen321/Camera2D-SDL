@@ -61,12 +61,17 @@ namespace Camera2D
 		void init(int windowWidth, int windowHeight, SDL_Renderer* renderer);
 		void setPosition(float x, float y);
 		void setPosition(const Point& p);
+		Vector2 getPosition() const;
+		Vector2 getSize() const;
 
-		bool worldToScreen(SDL_Rect& r) const;
-		bool worldToScreen(Point& p) const;
+		SDL_Rect worldToScreen(const SDL_Rect& r) const;
+		Point worldToScreen(const Point& p) const;
 
 		SDL_Rect screenToWorld(const SDL_Rect& sr) const;
 		Point screenToWorld(const Point& sp) const;
+
+		bool intersects(const SDL_Rect& r) const; //check if world rect is within camera
+		bool intersects(const Point& p) const; //check if world point is within camera
 
 		void setMotionProps(float accelerationRate = DEFAULT_ACCEL, float maxVelocity = DEFAULT_MAX_VEL, float drag = DEFAULT_DRAG);
 		void setZoomProps(float zoomSpeed = DEFAULT_ZOOM_SPEED, float zoomToSpeed = DEFAULT_ZOOMTO_SPEED, float minZoom = DEFAULT_MIN_ZOOM,

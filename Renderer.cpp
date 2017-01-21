@@ -63,18 +63,26 @@ void Renderer::setDrawColour(const Colour& c) const
 	SDL_SetRenderDrawColor(m_renderer, c.r, c.g, c.b, c.a);
 }
 
-void Renderer::drawRect(SDL_Rect r, const Colour& colour) const
+void Renderer::drawRect(const SDL_Rect& r, const Colour& colour) const
 {
-	//r = applyCameraTransformation(r);
-
-
 	//m_camera->screenToWorld(r);
-	
-	if (m_camera->worldToScreen(r))
+	SDL_Rect screenRect = m_camera->worldToScreen(r);
+	if (m_camera->intersects(screenRect))
 	{
 		setDrawColour(colour);
-		SDL_RenderFillRect(m_renderer, &r);
+		SDL_RenderFillRect(m_renderer, &screenRect);
 		setDrawColour(0, 0, 0, 255);
-		SDL_RenderDrawRect(m_renderer, &r);
+		SDL_RenderDrawRect(m_renderer, &screenRect);
 	}
+}
+
+void Renderer::drawOutlineRect(const SDL_Rect & r, const Colour & outlineColour) const
+{
+	//test
+	//SDL_Rect screenRect = m_camera->worldToScreen(r);
+	//if (m_camera->intersects(screenRect))
+	//{
+		setDrawColour(outlineColour);
+		SDL_RenderDrawRect(m_renderer, &r);
+	//}
 }

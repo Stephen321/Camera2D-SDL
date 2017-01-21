@@ -54,9 +54,12 @@ void Game::render()
 	for (const SDL_Rect& rect : m_tiles)
 	{
 		m_renderer.drawRect(rect, Colour(255, 0, 0, 255));
+		m_renderer.drawOutlineRect(m_camera.worldToScreen(rect), Colour(0, 255, 255, 255));
 	}
 
 	m_camera.render();
+	SDL_Rect rect = { (int)m_camera.getPosition().x, (int)m_camera.getPosition().y, (int)m_camera.getSize().x, (int)m_camera.getSize().y};
+	m_renderer.drawOutlineRect(rect, Colour(0, 255, 255, 255));
 
 	m_renderer.present();
 }

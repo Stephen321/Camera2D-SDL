@@ -41,41 +41,46 @@ void Camera2D::Camera::setPosition(const Point& p)
 	m_bounds.y = p.y;
 }
 
-bool Camera2D::Camera::worldToScreen(SDL_Rect& r) const
+Camera2D::Vector2 Camera2D::Camera::getPosition() const
 {
-	float xScale = (float)m_windowWidth / m_bounds.w;
-	float yScale = (float)m_windowHeight / m_bounds.h;
-
-	Point p(r.x, r.y);
-	worldToScreen(p);
-	r.x = p.x;
-	r.y = p.y;
-	r.w *= xScale;
-	r.h *= yScale;
-
-	//TODO fix this
-	return true;
-	bool visible = false;
-	if (r.x <= m_bounds.w && r.x + r.w >= 0.f &&
-		r.y <= m_bounds.h && r.y + r.h >= 0.f)
-	{
-		visible = true;
-	}
-	return visible;
+	return m_position;
 }
 
-bool Camera2D::Camera::worldToScreen(Point & p) const
+Camera2D::Vector2 Camera2D::Camera::getSize() const
 {
+	return Vector2(m_bounds.w, m_bounds.h);
+}
+
+SDL_Rect Camera2D::Camera::worldToScreen(const SDL_Rect& r) const
+{
+	SDL_Rect screenR = r;
+
 	float xScale = (float)m_windowWidth / m_bounds.w;
 	float yScale = (float)m_windowHeight / m_bounds.h;
 
-	p.x -= m_bounds.x;
-	p.y -= m_bounds.y;
-	p.x *= xScale;
-	p.y *= yScale;
+	Point screenP(screenR.x, screenR.y);
+	screenP = worldToScreen(screenP);
+	screenR.x = screenP.x;
+	screenR.y = screenP.y;
+	screenR.w *= xScale;
+	screenR.h *= yScale;
 
-	return (p.x > m_bounds.x && p.x < m_bounds.x + m_bounds.w &&
-			p.y > m_bounds.y && p.y < m_bounds.y + m_bounds.y);
+	return screenR;
+}
+
+Camera2D::Point Camera2D::Camera::worldToScreen(const Point & p) const
+{
+	Point screenP = p;
+
+	float xScale = (float)m_windowWidth / m_bounds.w;
+	float yScale = (float)m_windowHeight / m_bounds.h;
+
+	screenP.x -= m_bounds.x;
+	screenP.y -= m_bounds.y;
+	screenP.x *= xScale;
+	screenP.y *= yScale;
+
+	return screenP;
 }
 
 SDL_Rect Camera2D::Camera::screenToWorld(const SDL_Rect& sr) const
@@ -253,8 +258,8 @@ void Camera2D::Camera::calculateBounds()
 	m_bounds.w = (int)m_windowWidth * m_zoom;
 	m_bounds.h = (int)m_windowHeight * m_zoom;
 
-	m_position.x = (int)(centre.x - m_bounds.w * 0.5f);
-	m_position.y = (int)(centre.y - m_bounds.h * 0.5f);
+	m_position.x = centre.x - m_bounds.w * 0.5f;
+	m_position.y = centre.y - m_bounds.h * 0.5f;
 
 	m_bounds.x = (int)m_position.x;
 	m_bounds.y = (int)m_position.y;
@@ -270,4 +275,16 @@ void Camera2D::Camera::moveBy(float x, float y)
 {
 	m_bounds.x += x;
 	m_bounds.y += y;
+}
+
+bool Camera2D::Camera::intersects(const SDL_Rect & r) const
+{
+	return (r.x < m_bounds.x + m_bounds.w && r.x + r.w > m_bounds.x &&
+			r.y < m_bounds.y + m_bounds.h && r.y + r.h > m_bounds.y);
+}
+
+bool Camera2D::Camera::intersects(const Point & p) const
+{
+	return (p.x > m_bounds.x && p.x < m_bounds.x + m_bounds.w &&
+			p.y > m_bounds.y && p.y < m_bounds.y + m_bounds.y);;
 }

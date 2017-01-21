@@ -13,7 +13,8 @@ public:
 	void setDrawColour(const Colour& c) const;
 	bool initialize(const Camera2D::Camera* camera, const char* title, int width, int height, int flags);
 	void clear();
-	void drawRect(SDL_Rect r, const Colour& fillColour) const;
+	void drawRect(const SDL_Rect& r, const Colour& fillColour) const;
+	void drawOutlineRect(const SDL_Rect& r, const Colour& outlineColour) const;
 	void present();
 	SDL_Renderer* getSDLRenderer();
 
