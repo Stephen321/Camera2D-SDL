@@ -144,6 +144,9 @@ void Game::handleEvents()
 			case SDLK_c:
 				m_camera.zoomToFit(m_rects);
 				break;
+			case SDLK_v:
+				m_camera.setZoomMinMax(-1.f, 0.5f);
+				break;
 			default:
 				break;
 			}

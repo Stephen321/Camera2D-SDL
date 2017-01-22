@@ -130,12 +130,20 @@ void Camera2D::Camera::setZoomProps(float zoomSpeed, float zoomToSpeed, float mi
 	m_zoomToSpeed = zoomToSpeed;
 	m_minZoom = minZoom;
 	m_maxZoom = maxZoom;
+
+	m_zoomTarget.x = clampZoom(m_zoom.x);
+	m_zoomTarget.y = clampZoom(m_zoom.y);
+	zoomTo(m_zoomTarget);
 }
 
 void Camera2D::Camera::setZoomMinMax(float min, float max)
 {
 	m_minZoom = min;
 	m_maxZoom = max;
+
+	m_zoomTarget.x = clampZoom(m_zoom.x);
+	m_zoomTarget.y = clampZoom(m_zoom.y);
+	zoomTo(m_zoomTarget);
 }
 
 void Camera2D::Camera::pan(int xDir, int yDir)
