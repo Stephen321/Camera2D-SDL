@@ -30,25 +30,18 @@ bool Game::initialize(const char* title, int width, int height, int flags)
 
 	m_camera.init(width, height, m_renderer.getSDLRenderer());
 
-	int size = 20;
-	Vector2f pos;
-	for (int y = 0; y < 5; y++)
-	{
-		for (int x = 0; x < 5; x++)
-		{
-			m_rects.push_back({ (int)pos.x , (int)pos.y , size, size });
-			pos.x += size;
-		}
-		pos.x = 0;
-		pos.y += size;
-	}
 
+	m_rects.push_back({ 0, 0, RECT_WIDTH, RECT_WIDTH });
+	m_rects.push_back({ 100, 0, RECT_WIDTH, RECT_WIDTH });
+	m_rects.push_back({ -250, -100, RECT_WIDTH, RECT_WIDTH });
+	m_rects.push_back({ 500, 50, RECT_WIDTH, RECT_WIDTH });
+	m_rects.push_back({ 200, 300, RECT_WIDTH, RECT_WIDTH });
 
 	m_points.push_back(Camera2D::Point(0.f, 0.f));
 	m_points.push_back(Camera2D::Point(150.f, 0.f));
 	m_points.push_back(Camera2D::Point(0.f, 150.f));
 	m_points.push_back(Camera2D::Point(300.f, 0.f));
-	m_points.push_back(Camera2D::Point(0.f, 300.f));
+	m_points.push_back(Camera2D::Point(0.f, -300.f));
 
 	m_background = loadTexture("background.bmp");
 	int backgroundWidth, backgroundHeight;

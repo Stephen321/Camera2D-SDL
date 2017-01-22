@@ -11,6 +11,8 @@ Camera2D::Camera::Camera()
 	, m_maxZoom(DEFAULT_MAX_ZOOM)
 	, m_zoomToActive(false)
 	, m_zoomToFitActive(false)
+	, m_allowedHorizontal(true)
+	, m_allowedVertical(true)
 {
 }
 
@@ -38,6 +40,12 @@ void Camera2D::Camera::setCentre(const Point& p)
 	m_centre.y = p.y;
 	m_bounds.x = m_centre.x - m_bounds.w * 0.5f;
 	m_bounds.y = m_centre.y - m_bounds.h * 0.5f;
+}
+
+void Camera2D::Camera::setSize(int width, int height)
+{
+	m_bounds.w = width;
+	m_bounds.h = height;
 }
 
 Camera2D::Vector2 Camera2D::Camera::getPosition() const
@@ -148,31 +156,61 @@ void Camera2D::Camera::setZoomMinMax(float min, float max)
 
 void Camera2D::Camera::pan(int xDir, int yDir)
 {
+	if (m_allowedHorizontal)
+	{
+		m_timeSinceLastXAccel = 0.f;
+		m_zoomToFitActive = false;
+	}
+	else
+	{
+		xDir = 0.f;
+	}
+	if (m_allowedVertical)
+	{
+		m_timeSinceLastYAccel = 0.f;
+		m_zoomToFitActive = false;
+	}
+	else
+	{
+		yDir = 0.f;
+	}
 	m_acceleration += Vector2(xDir, yDir) * m_accelerationRate;
-	m_timeSinceLastXAccel = 0.f;
-	m_timeSinceLastYAccel = 0.f;
-	m_zoomToFitActive = false;
+	
 }
 
 void Camera2D::Camera::panX(int xDir)
 {
+	if (m_allowedHorizontal)
+	{
+		m_timeSinceLastXAccel = 0.f;
+		m_zoomToFitActive = false;
+	}
+	else
+	{
+		xDir = 0.f;
+	}
+
 	m_acceleration += Vector2(xDir, 0.f) * m_accelerationRate;
-	m_timeSinceLastXAccel = 0.f;
-	m_zoomToFitActive = false;
 }
 
 void Camera2D::Camera::panY(int yDir)
 {
+	if (m_allowedVertical)
+	{
+		m_timeSinceLastYAccel = 0.f;
+		m_zoomToFitActive = false;
+	}
+	else
+	{
+		yDir = 0.f;
+	}
 	m_acceleration += Vector2(0.f, yDir) * m_accelerationRate;
-	m_timeSinceLastYAccel = 0.f;
-	m_zoomToFitActive = false;
 }
 
 void Camera2D::Camera::zoom(int dir)
 {
 	if (m_ratioResetting)
 		return;
-	std::cout << m_zoom.x << " y: " << m_zoom.y << std::endl;
 	m_zoomToActive = false;
 	m_zoomDirection.x = dir;
 	m_zoomDirection.y = dir;
@@ -301,8 +339,8 @@ void Camera2D::Camera::zoomToFit(const std::vector<Point>& points, bool keepZoom
 	//if (allPointsVisible)
 	//	return;
 	m_zoomToFitStart = m_centre;
-	m_zoomToFitTarget.x = (maxX - minX) * 0.5f;
-	m_zoomToFitTarget.y = (maxY - minY) * 0.5f;
+	m_zoomToFitTarget.x = (maxX - abs(minX)) * 0.5f;
+	m_zoomToFitTarget.y = (maxY - abs(minY)) * 0.5f;
 
 	m_zoomToFitActive = true;
 	m_zoomToFitTime = 0.f;
@@ -311,17 +349,20 @@ void Camera2D::Camera::zoomToFit(const std::vector<Point>& points, bool keepZoom
 	{
 
 		float desiredSize;
-		if (maxX - minX > maxY - maxY)
+		float windowSize;
+		if (maxX - minX > maxY - minY)
 		{
 			desiredSize = maxX - minX;
+			windowSize = m_windowWidth;
 		}
 		else
 		{
-			desiredSize = maxY - maxY;
+			desiredSize = maxY - minY;
+			windowSize = m_windowHeight;
 		}
 
-		float windowSize = (m_windowWidth < m_windowHeight) ? m_windowWidth : m_windowHeight;
 		float zoomTarget = desiredSize / windowSize;
+		std::cout << "window size: " << windowSize << " desiredSize: " << desiredSize << " zoomTarget: " << zoomTarget << std::endl;
 		zoomTo(zoomTarget);
 	}
 	else
@@ -477,6 +518,22 @@ void Camera2D::Camera::moveBy(float x, float y)
 {
 	m_bounds.x += x;
 	m_bounds.y += y;
+}
+
+void Camera2D::Camera::allowedHorizontal(bool value)
+{
+	m_allowedHorizontal = value;
+}
+
+void Camera2D::Camera::allowedVertical(bool value)
+{
+	m_allowedVertical = value;
+}
+
+void Camera2D::Camera::setLock(bool value)
+{
+	m_allowedHorizontal = value;
+	m_allowedVertical = value;
 }
 
 bool Camera2D::Camera::intersects(const SDL_Rect & r) const

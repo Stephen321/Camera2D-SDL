@@ -90,6 +90,7 @@ namespace Camera2D
 		void init(int windowWidth, int windowHeight, SDL_Renderer* renderer);
 		void setCentre(float x, float y);
 		void setCentre(const Point& p);
+		void setSize(int width, int height);
 		Vector2 getPosition() const;
 		Vector2 getSize() const;
 		SDL_Rect getBounds() const;
@@ -121,6 +122,10 @@ namespace Camera2D
 		void render();
 		void moveBy(float x, float y);
 
+		void allowedHorizontal(bool value);
+		void allowedVertical(bool value);
+		void setLock(bool value);
+
 	private:
 		void updateMotion(float deltaTime);
 		void updateZoom(float deltaTime);
@@ -148,6 +153,9 @@ namespace Camera2D
 		const float MAX_TIME_BEFORE_ACCEL_RESET = 0.5f;
 
 		//TODO: should we use sdl image to render other formats than bmp??
+
+		bool m_allowedHorizontal;
+		bool m_allowedVertical;
 
 		//zoom props
 		Vector2 m_zoom;
