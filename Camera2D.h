@@ -51,18 +51,20 @@ namespace Camera2D
 	const float DEFAULT_ZOOM_SPEED = 0.01f;
 	const float DEFAULT_ZOOMTO_SPEED = 0.0001f;
 	const float DEFAULT_MIN_ZOOM = 1.5f;
-	const float DEFAULT_MAX_ZOOM = 0.5f; 
-	const float DEFAULT_ZOOM_SNAP = 100.f;
+	const float DEFAULT_MAX_ZOOM = 0.5f;
+	const float DEFAULT_ZOOM_SNAP_SPEED = 0.001f;
+	const float DEFAULT_ZOOM_SNAP_BACK = 0.1f;
 
 	class Camera
 	{
 	public:
 		Camera();
 		void init(int windowWidth, int windowHeight, SDL_Renderer* renderer);
-		void setPosition(float x, float y);
-		void setPosition(const Point& p);
+		void setCentre(float x, float y);
+		void setCentre(const Point& p);
 		Vector2 getPosition() const;
 		Vector2 getSize() const;
+		SDL_Rect getBounds() const;
 
 		SDL_Rect worldToScreen(const SDL_Rect& r) const;
 		Point worldToScreen(const Point& p) const;
@@ -75,7 +77,7 @@ namespace Camera2D
 
 		void setMotionProps(float accelerationRate = DEFAULT_ACCEL, float maxVelocity = DEFAULT_MAX_VEL, float drag = DEFAULT_DRAG);
 		void setZoomProps(float zoomSpeed = DEFAULT_ZOOM_SPEED, float zoomToSpeed = DEFAULT_ZOOMTO_SPEED, float minZoom = DEFAULT_MIN_ZOOM,
-						  float maxZoom = DEFAULT_MAX_ZOOM, float snapBackSpeed = DEFAULT_ZOOM_SNAP);
+						  float maxZoom = DEFAULT_MAX_ZOOM, float snapBackSpeed = DEFAULT_ZOOM_SNAP_SPEED, float maxSnapBackAmount = DEFAULT_ZOOM_SNAP_BACK);
 		void setZoomMinMax(float min = -1, float max = -1); //default to unlimited
 		void pan(int xDir, int yDir);
 		void panX(int xDir);
@@ -89,7 +91,7 @@ namespace Camera2D
 	private:
 		void updateMotion(float deltaTime);
 		void updateZoom(float deltaTime);
-		void calculateBounds();
+		void changeBoundsZoom();
 
 		SDL_Rect m_bounds;
 		SDL_Renderer* m_renderer;
@@ -103,7 +105,7 @@ namespace Camera2D
 		float m_drag;
 		Vector2 m_velocity;
 		Vector2 m_direction;
-		Vector2 m_position;
+		Vector2 m_centre;
 
 		//zoom props
 		float m_zoom;
@@ -113,7 +115,9 @@ namespace Camera2D
 		float m_minZoom; //how far out we can zoom
 		float m_maxZoom; //how far in to zoom
 		float m_snapBackSpeed;
+		float m_maxSnapBackAmount;
 		bool m_zoomToActive;
+		bool m_zoomSnapping;
 		float m_zoomTarget;
 	};
 }

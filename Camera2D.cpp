@@ -9,9 +9,11 @@ Camera2D::Camera::Camera()
 	, m_zoomToSpeed(DEFAULT_ZOOMTO_SPEED)
 	, m_minZoom(DEFAULT_MIN_ZOOM)
 	, m_maxZoom(DEFAULT_MAX_ZOOM)
-	, m_snapBackSpeed(DEFAULT_ZOOM_SNAP)
+	, m_snapBackSpeed(DEFAULT_ZOOM_SNAP_SPEED)
+	, m_maxSnapBackAmount(DEFAULT_ZOOM_SNAP_BACK)
 	, m_zoomTarget(0.f)
 	, m_zoomToActive(false)
+	, m_zoomSnapping(false)
 {
 }
 
@@ -20,35 +22,40 @@ void Camera2D::Camera::init(int windowWidth, int windowHeight, SDL_Renderer * re
 	m_windowWidth = windowWidth;
 	m_windowHeight = windowHeight;
 
-	m_bounds = { (int)m_position.x, (int)m_position.y, m_windowWidth, m_windowHeight };
+	m_bounds = { 0, 0, m_windowWidth, m_windowHeight };
 	m_renderer = renderer;
 }
 
 
-void Camera2D::Camera::setPosition(float x, float y)
+void Camera2D::Camera::setCentre(float x, float y)
 {
-	m_position.x = x;
-	m_position.x = x;
-	m_bounds.x = x; 
-	m_bounds.y = y;
+	m_centre.x = x;
+	m_centre.x = x;
+	m_bounds.x = x - m_bounds.w * 0.5f;
+	m_bounds.y = y - m_bounds.h * 0.5f;
 }
 
-void Camera2D::Camera::setPosition(const Point& p)
+void Camera2D::Camera::setCentre(const Point& p)
 {
-	m_position.x = p.x;
-	m_position.y = p.y;
-	m_bounds.x = p.x;
-	m_bounds.y = p.y;
+	m_centre.x = p.x;
+	m_centre.y = p.y;
+	m_bounds.x = m_centre.x - m_bounds.w * 0.5f;
+	m_bounds.y = m_centre.y - m_bounds.h * 0.5f;
 }
 
 Camera2D::Vector2 Camera2D::Camera::getPosition() const
 {
-	return m_position;
+	return m_centre;
 }
 
 Camera2D::Vector2 Camera2D::Camera::getSize() const
 {
 	return Vector2(m_bounds.w, m_bounds.h);
+}
+
+SDL_Rect Camera2D::Camera::getBounds() const
+{
+	return m_bounds;
 }
 
 SDL_Rect Camera2D::Camera::worldToScreen(const SDL_Rect& r) const
@@ -120,13 +127,18 @@ void Camera2D::Camera::setMotionProps(float accelerationRate, float maxVelocity,
 	m_drag = drag;
 }
 
-void Camera2D::Camera::setZoomProps(float zoomSpeed, float zoomToSpeed, float minZoom, float maxZoom, float snapBackSpeed)
+void Camera2D::Camera::setZoomProps(float zoomSpeed, float zoomToSpeed, float minZoom, float maxZoom, float snapBackSpeed, float maxSnapBackAmount)
 {
 	m_zoomSpeed = zoomSpeed;
 	m_zoomToSpeed = zoomToSpeed;
 	m_minZoom = minZoom;
 	m_maxZoom = maxZoom;
 	m_snapBackSpeed = snapBackSpeed;
+	m_maxSnapBackAmount = maxSnapBackAmount;
+	if (m_maxZoom - m_maxSnapBackAmount < 0.f)
+	{
+		m_maxSnapBackAmount = 0.f;
+	}
 }
 
 void Camera2D::Camera::setZoomMinMax(float min, float max)
@@ -157,25 +169,40 @@ void Camera2D::Camera::zoom(int dir)
 	m_zoomDirection = dir;
 	m_zoom += m_zoomSpeed * m_zoomDirection;
 
-	if (m_zoom < m_maxZoom) 
+	if (m_zoom < m_maxZoom - m_maxSnapBackAmount) //can't snap back futher than this
 	{
-		m_zoom = m_maxZoom; //TODO: snap back here
+		m_zoom = m_maxZoom - m_maxSnapBackAmount;
+	}
+	else if (m_zoom > m_minZoom + m_maxSnapBackAmount)
+	{
+		m_zoom = m_minZoom + m_maxSnapBackAmount;
+	}
+
+	if (m_zoom < m_maxZoom)  
+	{
+		zoomTo(m_maxZoom); //TODO: only do this when zooming stops? otherwise there's jerky zoom as you increase m_zoom and this decreases. 
+		m_zoomSnapping = true;
 	}
 	else if (m_zoom > m_minZoom && m_minZoom != -1)
 	{
-		m_zoom = m_minZoom; //TODO: snap here as well
+		zoomTo(m_minZoom);
+		m_zoomSnapping = true;
 	}
 	else if (m_zoom < m_zoomSpeed) //if zoom set to 0 or less then nothing will display so set to change amount
 	{
 		m_zoom = m_zoomSpeed;
 	}
-
-	calculateBounds();
+	changeBoundsZoom();
 }
 
 void Camera2D::Camera::zoomTo(float target)
 {
-	target = (target < 0.f) ? m_zoomSpeed : target;
+	float speed = m_zoomSpeed;
+	if (m_zoomSnapping)
+	{
+		speed = m_snapBackSpeed;
+	}
+	target = (target < 0.f) ? speed : target;
 
 	m_zoomToActive = true;
 	m_zoomDirection = (target - m_zoom > 0) ? 1 : -1;
@@ -192,10 +219,9 @@ void Camera2D::Camera::zoomTo(float target)
 
 void Camera2D::Camera::update(float deltaTime)
 {
+	std::cout << m_zoom << std::endl;
 	updateMotion(deltaTime);
 	updateZoom(deltaTime);
-	//cout << "velX: " << m_velocity.x << " , " << m_velocity.y << endl;
-
 }
 
 
@@ -230,9 +256,9 @@ void Camera2D::Camera::updateMotion(float deltaTime)
 		}
 	}
 
-	m_position += m_velocity * deltaTime;
-	m_bounds.x = (int)m_position.x;
-	m_bounds.y = (int)m_position.y;
+	m_centre += m_velocity * deltaTime;
+	m_bounds.x = (int)(m_centre.x - m_bounds.w * 0.5f);
+	m_bounds.y = (int)(m_centre.y - m_bounds.h * 0.5f);
 }
 
 void Camera2D::Camera::updateZoom(float deltaTime)
@@ -247,24 +273,15 @@ void Camera2D::Camera::updateZoom(float deltaTime)
 			m_zoomToActive = false;
 			m_zoomDirection = 0;
 		}
-		calculateBounds();
+		changeBoundsZoom();
 	}
 }
 
-void Camera2D::Camera::calculateBounds()
+void Camera2D::Camera::changeBoundsZoom()
 {
 	//problem with less than zero or x and y not changing when using zoom to
-	Point centre(m_bounds.x + m_bounds.w * 0.5f, m_bounds.y + m_bounds.h * 0.5f); //centre before zoom
 	m_bounds.w = (int)m_windowWidth * m_zoom;
 	m_bounds.h = (int)m_windowHeight * m_zoom;
-
-	m_position.x = centre.x - m_bounds.w * 0.5f;
-	m_position.y = centre.y - m_bounds.h * 0.5f;
-
-	m_bounds.x = (int)m_position.x;
-	m_bounds.y = (int)m_position.y;
-
-	cout << "bounds x: " << m_bounds.x << " ,y: " << m_bounds.y << " ,w: " << m_bounds.w << " ,h: " << m_bounds.h << endl;
 }
 
 void Camera2D::Camera::render()

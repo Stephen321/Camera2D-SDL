@@ -67,7 +67,7 @@ void Renderer::drawRect(const SDL_Rect& r, const Colour& colour) const
 {
 	//m_camera->screenToWorld(r);
 	SDL_Rect screenRect = m_camera->worldToScreen(r);
-	if (m_camera->intersects(screenRect))
+	if (m_camera->intersects(r))
 	{
 		setDrawColour(colour);
 		SDL_RenderFillRect(m_renderer, &screenRect);

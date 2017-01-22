@@ -32,9 +32,9 @@ bool Game::initialize(const char* title, int width, int height, int flags)
 
 	int size = 20;
 	Vector2f pos;
-	for (int y = 0; y < 30; y++)
+	for (int y = 0; y < 5; y++)
 	{
-		for (int x = 0; x < 30; x++)
+		for (int x = 0; x < 5; x++)
 		{
 			m_tiles.push_back({ (int)pos.x , (int)pos.y , size, size });
 			pos.x += size;
@@ -58,8 +58,11 @@ void Game::render()
 	}
 
 	m_camera.render();
-	SDL_Rect rect = { (int)m_camera.getPosition().x, (int)m_camera.getPosition().y, (int)m_camera.getSize().x, (int)m_camera.getSize().y};
-	m_renderer.drawOutlineRect(rect, Colour(0, 255, 255, 255));
+	m_renderer.drawOutlineRect(m_camera.getBounds(), Colour(0, 255, 255, 255));
+
+
+	m_renderer.drawOutlineRect(m_camera.worldToScreen({ 0, 0, 100, 10 }), Colour(255, 0, 0, 255));
+	m_renderer.drawOutlineRect(m_camera.worldToScreen({ 0, 0, 10, 100 }), Colour(0, 255, 0, 255));
 
 	m_renderer.present();
 }
@@ -112,7 +115,7 @@ void Game::handleEvents()
 		case SDL_KEYUP:
 			switch (event.key.keysym.sym)
 			{
-			case SDLK_UP:
+		/*	case SDLK_UP:
 				m_camera.panY(0);
 				break;
 			case SDLK_DOWN:
@@ -123,7 +126,7 @@ void Game::handleEvents()
 				break;
 			case SDLK_RIGHT:
 				m_camera.panX(0);
-				break;
+				break;*/
 			case SDLK_z:
 				m_camera.zoomTo(0.f);
 				break;
