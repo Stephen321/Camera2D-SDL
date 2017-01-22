@@ -25,7 +25,9 @@ private:
 	bool m_running;
 	unsigned int m_lastTime;
 
-	std::vector<SDL_Rect> m_tiles;
+	std::vector<SDL_Rect> m_rects;
+	std::vector<Camera2D::Point> m_points;
+	const int POINT_SIZE = 10;
 	SDL_Texture* m_background; //© 2012-2013 Julien Jorge <julien.jorge@stuff-o-matic.com>
 	SDL_Rect m_backgroundRect;
 };

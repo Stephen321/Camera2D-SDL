@@ -36,17 +36,27 @@ bool Game::initialize(const char* title, int width, int height, int flags)
 	{
 		for (int x = 0; x < 5; x++)
 		{
-			m_tiles.push_back({ (int)pos.x , (int)pos.y , size, size });
+			m_rects.push_back({ (int)pos.x , (int)pos.y , size, size });
 			pos.x += size;
 		}
 		pos.x = 0;
 		pos.y += size;
 	}
 
+
+	m_points.push_back(Camera2D::Point(0.f, 0.f));
+	m_points.push_back(Camera2D::Point(150.f, 0.f));
+	m_points.push_back(Camera2D::Point(0.f, 150.f));
+	m_points.push_back(Camera2D::Point(300.f, 0.f));
+	m_points.push_back(Camera2D::Point(0.f, 300.f));
+
 	m_background = loadTexture("background.bmp");
 	int backgroundWidth, backgroundHeight;
 	SDL_QueryTexture(m_background, NULL, NULL, &backgroundWidth, &backgroundHeight);
 	m_backgroundRect = {0, 0, backgroundWidth, backgroundHeight};
+
+
+	m_camera.setZoomMinMax(-1, -1.f);
 	return true;
 }
 
@@ -55,30 +65,32 @@ void Game::render()
 {
 	m_renderer.clear();
 
-	for (const SDL_Rect& rect : m_tiles)
-	{
-		m_renderer.drawRect(rect, Colour(255, 0, 0, 255));
-		m_renderer.drawOutlineRect(m_camera.worldToScreen(rect), Colour(0, 255, 255, 255));
-	}
-
 
 	m_renderer.drawTexture(m_background, NULL, &m_camera.worldToScreen(m_backgroundRect));
 	m_camera.render();
 
+
+	
 	m_renderer.drawOutlineRect(m_camera.getBounds(), Colour(0, 255, 255, 255));
 
+	for (const SDL_Rect& rect : m_rects)
+	{
+		m_renderer.drawRect(rect, Colour(255, 0, 0, 255));
+	}
 
 	m_renderer.drawRect({ 0, 0, 100, 5 }, Colour(255, 0, 0, 255)); //x axis
 	m_renderer.drawRect({ 0, 0, 5, 100 }, Colour(0, 255, 0, 255)); //y axis
 	m_renderer.drawRect({ 0, 0, 5, 5 }, Colour(0, 0, 255, 255));   //z axis
 
+	for (const Camera2D::Point& point : m_points)
+	{
+		SDL_Rect r = { (int)(point.x - POINT_SIZE * 0.5f), (int)(point.y - POINT_SIZE * 0.5f), POINT_SIZE, POINT_SIZE };
+		m_renderer.drawRect(r, Colour(255, 255, 255, 255));
+	}
+
+
 	m_renderer.present();
 }
-
-int x = 0;
-int y = 0;
-int targetX = 0;
-int targetY = 0;
 
 void Game::update()
 {
@@ -124,13 +136,20 @@ void Game::handleEvents()
 			switch (event.key.keysym.sym)
 			{
 			case SDLK_z:
-				m_camera.zoomTo(0.f);
+				m_camera.zoomTo(5.f);
+				break;
+			case SDLK_x:
+				m_camera.zoomToFit(m_points, false);
+				break;
+			case SDLK_c:
+				m_camera.zoomToFit(m_rects);
 				break;
 			default:
 				break;
 			}
 			break;
 		case SDL_MOUSEWHEEL:
+			m_camera.resetZoomRatio();
 			if (event.wheel.y < 0)
 			{
 				m_camera.zoom(1);
