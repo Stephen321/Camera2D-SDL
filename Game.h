@@ -19,12 +19,15 @@ public:
 	bool isRunning();
 	void cleanUp();
 private:
+	SDL_Texture* loadTexture(const std::string& path);
 	Camera2D::Camera m_camera;
 	Renderer m_renderer;
 	bool m_running;
 	unsigned int m_lastTime;
 
 	std::vector<SDL_Rect> m_tiles;
+	SDL_Texture* m_background; //© 2012-2013 Julien Jorge <julien.jorge@stuff-o-matic.com>
+	SDL_Rect m_backgroundRect;
 };
 #endif
 

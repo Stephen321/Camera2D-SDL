@@ -86,3 +86,8 @@ void Renderer::drawOutlineRect(const SDL_Rect & r, const Colour & outlineColour)
 		SDL_RenderDrawRect(m_renderer, &r);
 	//}
 }
+
+void Renderer::drawTexture(SDL_Texture * texture, SDL_Rect* src, SDL_Rect* dest)
+{
+	SDL_RenderCopy(m_renderer, texture, src, dest);
+}

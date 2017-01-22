@@ -15,6 +15,7 @@ public:
 	void clear();
 	void drawRect(const SDL_Rect& r, const Colour& fillColour) const;
 	void drawOutlineRect(const SDL_Rect& r, const Colour& outlineColour) const;
+	void drawTexture(SDL_Texture* texture, SDL_Rect* src = NULL, SDL_Rect* dest = NULL);
 	void present();
 	SDL_Renderer* getSDLRenderer();
 

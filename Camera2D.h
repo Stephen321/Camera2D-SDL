@@ -28,7 +28,10 @@ namespace Camera2D
 			y -= v.y;
 			return *this;
 		};
-		Vector2 normalize() {
+		bool operator==(const Vector2& v) {
+			return (x == v.x && y == v.y);
+		};
+		Vector2 normalize() const {
 			if (length() == 0.f)
 				return Vector2();
 			Vector2 v(x, y);
@@ -36,9 +39,15 @@ namespace Camera2D
 			v.y /= length();
 			return v;
 		};
-		float length() {
+		float length() const {
 			return sqrt(x* x + y * y);
-		}
+		};
+		 void limit(float max) {
+			if (length() > max)
+			{
+				*this = normalize() * max;
+			}
+		};
 		float x;
 		float y;
 	} Size, Point;
@@ -91,6 +100,7 @@ namespace Camera2D
 	private:
 		void updateMotion(float deltaTime);
 		void updateZoom(float deltaTime);
+		
 		void changeBoundsZoom();
 
 		SDL_Rect m_bounds;
@@ -106,6 +116,12 @@ namespace Camera2D
 		Vector2 m_velocity;
 		Vector2 m_direction;
 		Vector2 m_centre;
+		Vector2 m_acceleration;
+		float m_timeSinceLastXAccel;
+		float m_timeSinceLastYAccel;
+		const float MAX_TIME_BEFORE_ACCEL_RESET = 0.5f;
+
+		//TODO: should we use sdl image to render other formats than bmp??
 
 		//zoom props
 		float m_zoom;

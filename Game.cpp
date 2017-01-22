@@ -43,6 +43,10 @@ bool Game::initialize(const char* title, int width, int height, int flags)
 		pos.y += size;
 	}
 
+	m_background = loadTexture("background.bmp");
+	int backgroundWidth, backgroundHeight;
+	SDL_QueryTexture(m_background, NULL, NULL, &backgroundWidth, &backgroundHeight);
+	m_backgroundRect = {0, 0, backgroundWidth, backgroundHeight};
 	return true;
 }
 
@@ -57,12 +61,16 @@ void Game::render()
 		m_renderer.drawOutlineRect(m_camera.worldToScreen(rect), Colour(0, 255, 255, 255));
 	}
 
+
+	m_renderer.drawTexture(m_background, NULL, &m_camera.worldToScreen(m_backgroundRect));
 	m_camera.render();
+
 	m_renderer.drawOutlineRect(m_camera.getBounds(), Colour(0, 255, 255, 255));
 
 
-	m_renderer.drawOutlineRect(m_camera.worldToScreen({ 0, 0, 100, 10 }), Colour(255, 0, 0, 255));
-	m_renderer.drawOutlineRect(m_camera.worldToScreen({ 0, 0, 10, 100 }), Colour(0, 255, 0, 255));
+	m_renderer.drawRect({ 0, 0, 100, 5 }, Colour(255, 0, 0, 255)); //x axis
+	m_renderer.drawRect({ 0, 0, 5, 100 }, Colour(0, 255, 0, 255)); //y axis
+	m_renderer.drawRect({ 0, 0, 5, 5 }, Colour(0, 0, 255, 255));   //z axis
 
 	m_renderer.present();
 }
@@ -75,9 +83,9 @@ int targetY = 0;
 void Game::update()
 {
 	unsigned int currentTime = LTimer::gameTime();//millis since game started
-	unsigned int deltaTime = currentTime - m_lastTime;//time since last update
+	float deltaTime = (currentTime - m_lastTime) / 1000.f;//time since last update
 
-	m_camera.update(deltaTime / 1000.f);
+	m_camera.update(deltaTime);
 													
 	m_lastTime = currentTime;//save the curent time for next frame
 }
@@ -115,18 +123,6 @@ void Game::handleEvents()
 		case SDL_KEYUP:
 			switch (event.key.keysym.sym)
 			{
-		/*	case SDLK_UP:
-				m_camera.panY(0);
-				break;
-			case SDLK_DOWN:
-				m_camera.panY(0);
-				break;
-			case SDLK_LEFT:
-				m_camera.panX(0);
-				break;
-			case SDLK_RIGHT:
-				m_camera.panX(0);
-				break;*/
 			case SDLK_z:
 				m_camera.zoomTo(0.f);
 				break;
@@ -161,6 +157,31 @@ bool Game::isRunning()
 
 void Game::cleanUp()
 {
+	SDL_DestroyTexture(m_background);
+	m_background = NULL;
 	m_renderer.cleanUp();
 	SDL_Quit();
+}
+
+SDL_Texture * Game::loadTexture(const std::string & path)
+{
+	SDL_Texture* texture = NULL;
+
+	SDL_Surface* surface = SDL_LoadBMP(path.c_str());
+	if (surface == NULL)
+	{
+		printf("Unable to load image %s! SDL_image Error: %s\n", path.c_str(), SDL_GetError());
+	}
+	else
+	{
+		texture = SDL_CreateTextureFromSurface(m_renderer.getSDLRenderer(), surface);
+		if (texture == NULL)
+		{
+			printf("Unable to create texture from %s! SDL Error: %s\n", path.c_str(), SDL_GetError());
+		}
+
+		SDL_FreeSurface(surface);
+	}
+
+	return texture;
 }

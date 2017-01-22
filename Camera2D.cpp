@@ -149,18 +149,21 @@ void Camera2D::Camera::setZoomMinMax(float min, float max)
 
 void Camera2D::Camera::pan(int xDir, int yDir)
 {
-	m_direction.x = xDir;
-	m_direction.y = yDir;
+	m_acceleration += Vector2(xDir, yDir) * m_accelerationRate;
+	m_timeSinceLastXAccel = 0.f;
+	m_timeSinceLastYAccel = 0.f;
 }
 
 void Camera2D::Camera::panX(int xDir)
 {
-	m_direction.x = xDir;
+	m_acceleration += Vector2(xDir, 0.f) * m_accelerationRate;
+	m_timeSinceLastXAccel = 0.f;
 }
 
 void Camera2D::Camera::panY(int yDir)
 {
-	m_direction.y = yDir;
+	m_acceleration += Vector2(0.f, yDir) * m_accelerationRate;
+	m_timeSinceLastYAccel = 0.f;
 }
 
 void Camera2D::Camera::zoom(int dir)
@@ -180,7 +183,7 @@ void Camera2D::Camera::zoom(int dir)
 
 	if (m_zoom < m_maxZoom)  
 	{
-		zoomTo(m_maxZoom); //TODO: only do this when zooming stops? otherwise there's jerky zoom as you increase m_zoom and this decreases. 
+		zoomTo(m_maxZoom); //TODO: only do this when zooming stops? otherwise there's jerky zoom as you increase m_zoom and this decreases it. 
 		m_zoomSnapping = true;
 	}
 	else if (m_zoom > m_minZoom && m_minZoom != -1)
@@ -219,7 +222,6 @@ void Camera2D::Camera::zoomTo(float target)
 
 void Camera2D::Camera::update(float deltaTime)
 {
-	std::cout << m_zoom << std::endl;
 	updateMotion(deltaTime);
 	updateZoom(deltaTime);
 }
@@ -227,13 +229,17 @@ void Camera2D::Camera::update(float deltaTime)
 
 void Camera2D::Camera::updateMotion(float deltaTime)
 {
-	m_velocity += m_direction * (m_accelerationRate * deltaTime);
+	std::cout << m_acceleration.x << " y: " << m_acceleration.y << std::endl;
+	
+	m_acceleration.limit(m_accelerationRate);
+	m_velocity += m_acceleration * deltaTime;
+	m_velocity.limit(m_maxVelocity);
 
-	if (m_velocity.length() > m_maxVelocity) //limit to max velocity
-	{
-		m_velocity = m_velocity.normalize() * m_maxVelocity;
-	}
-	if (m_direction.x == 0.f) //if no input to move on x
+
+	m_timeSinceLastXAccel += deltaTime; //TODO: make motion better as it seems to stop at some poitns
+	m_timeSinceLastYAccel += deltaTime;
+
+	if (m_timeSinceLastXAccel > MAX_TIME_BEFORE_ACCEL_RESET) //too long since last x accel
 	{
 		if (abs(m_velocity.x) < MIN_VEL) //moving slow enough then just stop 
 		{
@@ -244,7 +250,7 @@ void Camera2D::Camera::updateMotion(float deltaTime)
 			m_velocity.x -= m_velocity.x *  deltaTime * m_drag;
 		}
 	}
-	if (m_direction.y == 0.f) //no input to move on y
+	if (m_timeSinceLastYAccel > MAX_TIME_BEFORE_ACCEL_RESET) //too long since last y accel
 	{
 		if (abs(m_velocity.y) < MIN_VEL) //moving slow enough then just stop 
 		{
@@ -259,6 +265,12 @@ void Camera2D::Camera::updateMotion(float deltaTime)
 	m_centre += m_velocity * deltaTime;
 	m_bounds.x = (int)(m_centre.x - m_bounds.w * 0.5f);
 	m_bounds.y = (int)(m_centre.y - m_bounds.h * 0.5f);
+
+	if (m_timeSinceLastXAccel > MAX_TIME_BEFORE_ACCEL_RESET && m_timeSinceLastYAccel > MAX_TIME_BEFORE_ACCEL_RESET)
+	{
+		m_acceleration.x = 0.f;
+		m_acceleration.y = 0.f;
+	}
 }
 
 void Camera2D::Camera::updateZoom(float deltaTime)
