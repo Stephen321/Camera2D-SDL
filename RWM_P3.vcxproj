@@ -85,15 +85,20 @@
   <ItemGroup>
     <ClCompile Include="Camera2D.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="Layer.cpp" />
     <ClCompile Include="LTimer.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="ParallaxEffect.cpp" />
     <ClCompile Include="Renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BasicTypes.h" />
     <ClInclude Include="Camera2D.h" />
+    <ClInclude Include="Effect.h" />
     <ClInclude Include="Game.h" />
+    <ClInclude Include="Layer.h" />
     <ClInclude Include="LTimer.h" />
+    <ClInclude Include="ParallaxEffect.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Renderer.h" />

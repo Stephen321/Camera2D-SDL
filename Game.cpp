@@ -31,11 +31,11 @@ bool Game::initialize(const char* title, int width, int height, int flags)
 	m_camera.init(width, height, m_renderer.getSDLRenderer());
 
 
-	m_rects.push_back({ 0, 0, RECT_WIDTH, RECT_WIDTH });
-	m_rects.push_back({ 100, 0, RECT_WIDTH, RECT_WIDTH });
-	m_rects.push_back({ -250, -100, RECT_WIDTH, RECT_WIDTH });
-	m_rects.push_back({ 500, 50, RECT_WIDTH, RECT_WIDTH });
-	m_rects.push_back({ 200, 300, RECT_WIDTH, RECT_WIDTH });
+	m_rects.push_back({ 0, 0, RECT_WIDTH, RECT_HEIGHT });
+	m_rects.push_back({ 100, 0, RECT_WIDTH, RECT_HEIGHT });
+	m_rects.push_back({ -250, -100, RECT_WIDTH, RECT_HEIGHT });
+	m_rects.push_back({ 500, 50, RECT_WIDTH, RECT_HEIGHT });
+	m_rects.push_back({ 200, 300, RECT_WIDTH, RECT_HEIGHT });
 
 	m_points.push_back(Camera2D::Point(0.f, 0.f));
 	m_points.push_back(Camera2D::Point(150.f, 0.f));
@@ -50,6 +50,14 @@ bool Game::initialize(const char* title, int width, int height, int flags)
 
 
 	m_camera.setZoomMinMax(-1, -1.f);
+
+	Camera2D::ParallaxEffect pe(true);
+	pe.addLayer(Camera2D::Layer("parallax/stars", 0.2f, 3));
+	pe.addLayer(Camera2D::Layer("parallax/mountains", 0.6f, 7));
+	pe.addLayer(Camera2D::Layer("parallax/surface", 0.8f, 9));
+	pe.setName("parallaxEffect");
+	m_camera.addEffect(pe);
+	
 	return true;
 }
 

@@ -13,6 +13,7 @@ Camera2D::Camera::Camera()
 	, m_zoomToFitActive(false)
 	, m_allowedHorizontal(true)
 	, m_allowedVertical(true)
+	, m_bounds({0,0,0,0})
 {
 }
 
@@ -296,19 +297,20 @@ void Camera2D::Camera::zoomToFit(const std::vector<SDL_Rect>& rects, bool keepZo
 	zoomToFit(points, keepZoomRatio);
 }
 
-void Camera2D::Camera::resetZoomRatio(bool resetToX)
+void Camera2D::Camera::resetZoomRatio()
 {
 	if (m_zoom.x != m_zoom.y)
 	{
-		if (resetToX)
+		float halfDiff = abs(m_zoom.x - m_zoom.y) * 0.5f;
+		if (m_zoom.x < m_zoom.y)
 		{
-			m_zoomTarget.x = m_zoom.x;
-			m_zoomTarget.y = m_zoom.x;
+			m_zoomTarget.x = m_zoom.x + halfDiff;
+			m_zoomTarget.y = m_zoom.y - halfDiff;
 		}
 		else
 		{
-			m_zoomTarget.x = m_zoom.y;
-			m_zoomTarget.y = m_zoom.y;
+			m_zoomTarget.x = m_zoom.x - halfDiff;
+			m_zoomTarget.y = m_zoom.y = halfDiff;
 		}
 		m_ratioResetting = true;
 		zoomTo(m_zoomTarget);
@@ -387,6 +389,13 @@ void Camera2D::Camera::update(float deltaTime)
 {
 	updateMotion(deltaTime);
 	updateZoom(deltaTime);
+
+	float parallaxSpeed = (m_pe.getScrollX()) ? -m_velocity.x : -m_velocity.y;
+	if (m_zoomToFitActive)
+	{
+		parallaxSpeed = (m_centre.x < m_zoomToFitTarget.x) ? -m_maxVelocity : m_maxVelocity;
+	}
+	m_pe.update(parallaxSpeed * deltaTime, worldToScreen(m_bounds));
 }
 
 
@@ -452,6 +461,13 @@ void Camera2D::Camera::updateZoom(float deltaTime)
 { //TODO: use lerp here as well
 	if (m_zoomToActive)
 	{
+		if (m_zoomToMaxTime == 0.f)
+		{
+			m_zoom = m_zoomTarget;
+			m_zoomToActive = false;
+			m_ratioResetting = false;
+			return;
+		}
 		float percent = m_zoomToTime / m_zoomToMaxTime;
 		if (percent > 1.f)
 		{
@@ -512,6 +528,7 @@ float Camera2D::Camera::clampZoom(float num)
 
 void Camera2D::Camera::render()
 {
+	m_pe.draw(m_renderer);
 }
 
 void Camera2D::Camera::moveBy(float x, float y)
@@ -534,6 +551,12 @@ void Camera2D::Camera::setLock(bool value)
 {
 	m_allowedHorizontal = value;
 	m_allowedVertical = value;
+}
+
+void Camera2D::Camera::addEffect(const ParallaxEffect & pe)
+{
+	m_pe = pe;
+	m_pe.init(m_renderer, m_bounds);
 }
 
 bool Camera2D::Camera::intersects(const SDL_Rect & r) const

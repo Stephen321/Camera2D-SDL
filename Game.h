@@ -27,8 +27,8 @@ private:
 
 	std::vector<SDL_Rect> m_rects;
 	std::vector<Camera2D::Point> m_points;
-	const int POINT_SIZE = 10;
-	const int RECT_WIDTH = 50;
+	const int POINT_SIZE = 8;
+	const int RECT_WIDTH = 40;
 	const int RECT_HEIGHT = 20;
 	SDL_Texture* m_background; //© 2012-2013 Julien Jorge <julien.jorge@stuff-o-matic.com>
 	SDL_Rect m_backgroundRect;

@@ -3,6 +3,7 @@
 #include "SDL.h"
 #include <vector> //use array instead?
 #include <iostream>
+#include "ParallaxEffect.h"
 
 using namespace std;
 
@@ -94,7 +95,6 @@ namespace Camera2D
 		Vector2 getPosition() const;
 		Vector2 getSize() const;
 		SDL_Rect getBounds() const;
-
 		SDL_Rect worldToScreen(const SDL_Rect& r) const;
 		Point worldToScreen(const Point& p) const;
 
@@ -117,7 +117,7 @@ namespace Camera2D
 		void zoomTo(float targetX, float targetY);
 		void zoomToFit(const std::vector<Point>& points, bool keepZoomRatio = true); //TODO: okay to use vector?
 		void zoomToFit(const std::vector<SDL_Rect>& rects, bool keepZoomRatio = true);
-		void resetZoomRatio(bool resetToX = true);
+		void resetZoomRatio();
 		void update(float deltaTime);
 		void render();
 		void moveBy(float x, float y);
@@ -125,6 +125,7 @@ namespace Camera2D
 		void allowedHorizontal(bool value);
 		void allowedVertical(bool value);
 		void setLock(bool value);
+		void addEffect(const ParallaxEffect& pe);
 
 	private:
 		void updateMotion(float deltaTime);
@@ -133,6 +134,10 @@ namespace Camera2D
 		float lerp(float start, float end, float percent);
 		void changeBoundsZoom();
 		float clampZoom(float num);
+
+		//effects
+		ParallaxEffect m_pe;
+
 
 		SDL_Rect m_bounds;
 		SDL_Renderer* m_renderer;
