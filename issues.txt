@@ -1,0 +1,10 @@
+	edge snapping or else -2 LO
+	effects with events (not so important?)
+	fix code
+	build lib and dll
+	!!!fix motion code!!!
+	!!!docs!!! (GDD + TDD)
+	
+	test finding and modifying
+	
+	!!!make demo!!!

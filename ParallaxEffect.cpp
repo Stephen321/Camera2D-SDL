@@ -1,7 +1,8 @@
 #include "ParallaxEffect.h"
 
 Camera2D::ParallaxEffect::ParallaxEffect(bool scrollX)
-	: m_scrollX(scrollX)
+	: Effect(Type::Parallax) 
+	, m_scrollX(scrollX)
 {
 }
 
@@ -16,11 +17,6 @@ void Camera2D::ParallaxEffect::init(SDL_Renderer * renderer, const SDL_Rect& bou
 void Camera2D::ParallaxEffect::addLayer(const Layer & layer)
 {
 	m_layers.push_back(layer);
-}
-
-void Camera2D::ParallaxEffect::setName(const std::string & name)
-{
-	m_name = name;
 }
 
 void Camera2D::ParallaxEffect::draw(SDL_Renderer * renderer)
@@ -39,10 +35,6 @@ void Camera2D::ParallaxEffect::update(float vel, const SDL_Rect& bounds)
 	}
 }
 
-std::string Camera2D::ParallaxEffect::getName() const
-{
-	return m_name;
-}
 
 bool Camera2D::ParallaxEffect::getScrollX() const
 {

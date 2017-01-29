@@ -27,6 +27,7 @@ private:
 
 	std::vector<SDL_Rect> m_rects;
 	std::vector<Camera2D::Point> m_points;
+	SDL_Rect m_testAttractorRect;
 	const int POINT_SIZE = 8;
 	const int RECT_WIDTH = 40;
 	const int RECT_HEIGHT = 20;

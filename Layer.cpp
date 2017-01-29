@@ -14,7 +14,7 @@ Camera2D::Layer::Layer(const std::string& path, float scrollMultiplier, int sect
 void Camera2D::Layer::init(bool scrollX, SDL_Renderer * renderer, const SDL_Rect& bounds)
 {
 	m_scrollX = scrollX;
-	for (int i = 0; i < SECTIONS; i++)
+	for (unsigned int i = 0; i < SECTIONS; i++)
 	{
 		Section& s = m_sections[i];
 		s.texture = loadTexture(m_path + std::to_string(i) + ".bmp", renderer);

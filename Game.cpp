@@ -55,9 +55,29 @@ bool Game::initialize(const char* title, int width, int height, int flags)
 	pe.addLayer(Camera2D::Layer("parallax/stars", 0.2f, 3));
 	pe.addLayer(Camera2D::Layer("parallax/mountains", 0.6f, 7));
 	pe.addLayer(Camera2D::Layer("parallax/surface", 0.8f, 9));
-	pe.setName("parallaxEffect");
+	pe.setName("parallaxEffect1");
 	m_camera.addEffect(pe);
-	
+
+
+	m_camera.startEffect("parallaxEffect1");
+
+	m_camera.endEffect("parallaxEffect1");
+
+	Camera2D::ShakeEffect se;
+	float duration = 2.f;
+	float speed = 2.f;
+	float magnitude = 1.f;
+	se.setProps(duration, speed, magnitude);
+	m_camera.addEffect(se, "shake");
+
+
+	//m_camera.setEdgeSnapIntervals(50.f, 50.f, 1.f);
+
+	Camera2D::Repulsor testAttractor;
+	testAttractor.setProps(Camera2D::Vector2(500.f, 0.f));
+	m_camera.addAffector(testAttractor, "repoulsor");
+
+	m_testAttractorRect = { 500, -5, 10, 10};
 	return true;
 }
 
@@ -83,11 +103,16 @@ void Game::render()
 	m_renderer.drawRect({ 0, 0, 5, 100 }, Colour(0, 255, 0, 255)); //y axis
 	m_renderer.drawRect({ 0, 0, 5, 5 }, Colour(0, 0, 255, 255));   //z axis
 
+	m_renderer.drawRect({ m_testAttractorRect.x - 300, m_testAttractorRect.y - 300, 600, 600 }, Colour(0, 128, 0, 255)); //attractor range
+	m_renderer.drawRect(m_testAttractorRect, Colour(0, 255, 0, 255)); //attractor
+
 	for (const Camera2D::Point& point : m_points)
 	{
 		SDL_Rect r = { (int)(point.x - POINT_SIZE * 0.5f), (int)(point.y - POINT_SIZE * 0.5f), POINT_SIZE, POINT_SIZE };
 		m_renderer.drawRect(r, Colour(255, 255, 255, 255));
 	}
+
+	m_renderer.drawRect({ (int)m_camera.getCentre().x - 5,(int)m_camera.getCentre().y - 5, 10, 10}, Colour(255, 255, 0, 255)); //test
 
 
 	m_renderer.present();
@@ -147,6 +172,9 @@ void Game::handleEvents()
 				break;
 			case SDLK_v:
 				m_camera.setZoomMinMax(-1.f, 0.5f);
+				break;
+			case SDLK_s:
+				m_camera.startEffect("shake");
 				break;
 			default:
 				break;
