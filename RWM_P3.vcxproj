@@ -48,17 +48,19 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)dependecies\SDL2-2.0.4\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)dependecies\SDL2-2.0.4\include;$(ProjectDir)dependecies\SDL2_image-2.0.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)dependecies\SDL2-2.0.4\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)dependecies\SDL2_image-2.0.1\lib\x86;$(ProjectDir)dependecies\SDL2-2.0.4\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(ProjectDir)dependecies\SDL2-2.0.4\lib\x86\SDL2.dll"  "$(TargetDir)"</Command>
+      <Command>copy "$(ProjectDir)dependecies\SDL2-2.0.4\lib\x86\SDL2.dll"  "$(TargetDir)";
+copy "$(ProjectDir)dependecies\SDL2_image-2.0.1\lib\x86\SDL2_image.dll"  "$(TargetDir)"
+copy "$(ProjectDir)dependecies\SDL2_image-2.0.1\lib\x86\libpng16-16.dll"  "$(TargetDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -68,22 +70,24 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)dependecies\SDL2-2.0.4\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)dependecies\SDL2-2.0.4\include;$(ProjectDir)dependecies\SDL2_image-2.0.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(ProjectDir)dependecies\SDL2-2.0.4\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)dependecies\SDL2_image-2.0.1\lib\x86;$(ProjectDir)dependecies\SDL2-2.0.4\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(ProjectDir)dependecies\SDL2-2.0.4\lib\x86\SDL2.dll"  "$(TargetDir)"</Command>
+      <Command>copy "$(ProjectDir)dependecies\SDL2-2.0.4\lib\x86\SDL2.dll"  "$(TargetDir)";
+copy "$(ProjectDir)dependecies\SDL2_image-2.0.1\lib\x86\SDL2_image.dll"  "$(TargetDir)"
+copy "$(ProjectDir)dependecies\SDL2_image-2.0.1\lib\x86\libpng16-16.dll"  "$(TargetDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Affector.cpp" />
+    <ClCompile Include="Influencer.cpp" />
     <ClCompile Include="Camera2D.cpp" />
     <ClCompile Include="Effect.cpp" />
     <ClCompile Include="Game.cpp" />
@@ -96,7 +100,7 @@
     <ClCompile Include="ShakeEffect.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Affector.h" />
+    <ClInclude Include="Influencer.h" />
     <ClInclude Include="Attractor.h" />
     <ClInclude Include="BasicTypes.h" />
     <ClInclude Include="Camera2D.h" />

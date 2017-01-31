@@ -1,6 +1,7 @@
 #ifndef GAME_H
 #define GAME_H
 #include <vector>
+#include "SDL_image.h"
 #include <ctime>
 #include "LTimer.h"
 #include "Renderer.h"
@@ -27,7 +28,11 @@ private:
 
 	std::vector<SDL_Rect> m_rects;
 	std::vector<Camera2D::Point> m_points;
-	SDL_Rect m_testAttractorRect;
+	std::vector<SDL_Rect> m_attractorRects;
+	std::vector<SDL_Rect> m_repulsorRects;
+	SDL_Texture * m_attractorTexture;
+	SDL_Texture * m_repulsorTexture;
+	const int INFLUENCER_RANGE = 600;
 	const int POINT_SIZE = 8;
 	const int RECT_WIDTH = 40;
 	const int RECT_HEIGHT = 20;

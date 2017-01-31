@@ -20,10 +20,15 @@ namespace Camera2D
 		void update(float deltaTime);
 		void setProps(float duration = SHAKE_DEFAULT_DURATION, float speed = SHAKE_DEFAULT_SPEED, float magnitude = SHAKE_DEFAULT_MAGNITUDE, float range = SHAKE_DEFAULT_RANGE);
 		void setDuration(float duration);
+		float getDuration() const;
 		void setSpeed(float speed);
+		float getSpeed() const;
 		void setMagnitude(float magnitude);
+		float getMagnitude() const;
 		void setRange(float range);
+		float getRange() const;
 		Vector2 getShakeOffset() const;
+		void setEnabled(bool enabled) override;
 	private:
 
 		inline float randomNumberF(float min, float max)

@@ -54,13 +54,13 @@
     <ClInclude Include="Vector2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Affector.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Attractor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Repulsor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Influencer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -95,7 +95,7 @@
     <ClCompile Include="PerlinNoise.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Affector.cpp">
+    <ClCompile Include="Influencer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -16,7 +16,7 @@ namespace Camera2D
 		void setName(const std::string& name);
 		Type getType() const;
 		bool getEnabled() const;
-		void setEnabled(bool enabled);
+		virtual void setEnabled(bool enabled);
 	protected:
 		std::string m_name;
 		Type m_type;

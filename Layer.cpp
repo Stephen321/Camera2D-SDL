@@ -1,12 +1,14 @@
 #include "Layer.h"
 
-Camera2D::Layer::Layer(const std::string& path, float scrollMultiplier, int sections)
-	: SECTIONS((sections < 3) ? 3 : sections) //has to be 3 sections
+Camera2D::Layer::Layer(const std::string& path, float scrollMultiplier, int sections, bool locked)
+	: SECTIONS((sections < 3) ? 3 : sections) //has to be 3 sections at least
 	, m_sections(SECTIONS)
+	, m_textureSections(sections)
 	, m_left(0)
 	, m_middle(1)
 	, m_right(2)
 	, m_scrollMultiplier(scrollMultiplier)
+	, m_locked(locked)
 	, m_path(path)
 {
 }
@@ -17,7 +19,16 @@ void Camera2D::Layer::init(bool scrollX, SDL_Renderer * renderer, const SDL_Rect
 	for (unsigned int i = 0; i < SECTIONS; i++)
 	{
 		Section& s = m_sections[i];
-		s.texture = loadTexture(m_path + std::to_string(i) + ".bmp", renderer);
+		if (i >= m_textureSections) //if index is greater than the amount of available textures (index will always go up to at least 3)
+		{
+			int textureIndex = m_textureSections - 1; //get index of the last section that loaded a texture
+			//use the same texture for this section
+			s.texture = m_sections[textureIndex].texture;
+		}
+		else //load the required texture
+		{
+			s.texture = loadTexture(m_path + std::to_string(i) + ".png", renderer);
+		}
 		int width, height;
 		SDL_QueryTexture(s.texture, NULL, NULL, &width, &height);
 		width *= ((float)bounds.w / width);
@@ -36,22 +47,38 @@ void Camera2D::Layer::init(bool scrollX, SDL_Renderer * renderer, const SDL_Rect
 
 void Camera2D::Layer::draw(SDL_Renderer* target) const
 {
-	SDL_RenderCopy(target, m_sections[m_left].texture, NULL, &m_sections[m_left].dest);
-	SDL_RenderCopy(target, m_sections[m_middle].texture, NULL, &m_sections[m_middle].dest);
-	SDL_RenderCopy(target, m_sections[m_right].texture, NULL, &m_sections[m_right].dest);
+	SDL_Rect left = m_sections[m_left].dest;
+	SDL_Rect middle = m_sections[m_middle].dest;
+	SDL_Rect right = m_sections[m_right].dest;
+
+	if (m_shakeOffset.length() > 0.f)
+	{
+		if (m_scrollX)
+		{
+			left.x -= m_shakeOffset.x;
+			middle.x -= m_shakeOffset.x;
+			right.x -= m_shakeOffset.x;
+		}
+		else
+		{
+			left.y -= m_shakeOffset.y;
+			middle.y -= m_shakeOffset.y;
+			right.y -= m_shakeOffset.y;
+		}
+	}
+
+	SDL_RenderCopy(target, m_sections[m_left].texture, NULL, &left);
+	SDL_RenderCopy(target, m_sections[m_middle].texture, NULL, &middle);
+	SDL_RenderCopy(target, m_sections[m_right].texture, NULL, &right);
 }
 
-void Camera2D::Layer::update(float vel, const SDL_Rect& bounds)
+void Camera2D::Layer::update(const Vector2& vel, const SDL_Rect& bounds, const Vector2& shakeOffset)
 {
-	//if (m_bounds == 0)
-	//	return;
-	static bool t = true;
+	m_shakeOffset = shakeOffset;
 	if (m_scrollX)
 	{
-		//std::cout << "m_bounds->x " << m_bounds->x << "m_sections[m_middle].dest.x " << m_sections[m_middle].dest.x << std::endl;
 		if (m_sections[m_middle].dest.x > bounds.x + bounds.w)
 		{
-			std::cout << "middle.x > bounds.x + bounds.w" << std::endl;
 			m_right = m_middle;
 			m_middle = m_left;
 			m_left = clamp(m_left - 1, 0, SECTIONS);
@@ -68,25 +95,37 @@ void Camera2D::Layer::update(float vel, const SDL_Rect& bounds)
 
 	if (m_scrollX)
 	{
-		m_sections[m_left].x += vel * m_scrollMultiplier;
-		m_sections[m_middle].x += vel * m_scrollMultiplier;
-		m_sections[m_right].x += vel * m_scrollMultiplier;
+		m_sections[m_left].x += vel.x * m_scrollMultiplier;
+		m_sections[m_middle].x += vel.x * m_scrollMultiplier;
+		m_sections[m_right].x += vel.x * m_scrollMultiplier;
 
-		m_sections[m_left].dest.x = m_sections[m_left].x;
-		m_sections[m_middle].dest.x = m_sections[m_middle].x;
-		m_sections[m_right].dest.x = m_sections[m_right].x;
-
+		if (m_locked == false)
+		{
+			m_sections[m_left].y += vel.y * m_scrollMultiplier;
+			m_sections[m_middle].y += vel.y * m_scrollMultiplier;
+			m_sections[m_right].y += vel.y * m_scrollMultiplier;
+		}
 	}
 	else
 	{
-		m_sections[m_left].y += vel * m_scrollMultiplier;
-		m_sections[m_middle].y += vel * m_scrollMultiplier;
-		m_sections[m_right].y += vel * m_scrollMultiplier;
+		m_sections[m_left].y += vel.y * m_scrollMultiplier;
+		m_sections[m_middle].y += vel.y * m_scrollMultiplier;
+		m_sections[m_right].y += vel.y * m_scrollMultiplier;
 
-		m_sections[m_left].dest.y = m_sections[m_left].y;
-		m_sections[m_middle].dest.y = m_sections[m_middle].y;
-		m_sections[m_right].dest.y = m_sections[m_right].y;
+		if (m_locked == false)
+		{
+			m_sections[m_left].x += vel.x * m_scrollMultiplier;
+			m_sections[m_middle].x += vel.x * m_scrollMultiplier;
+			m_sections[m_right].x += vel.x * m_scrollMultiplier;
+		}
 	}
+
+	m_sections[m_left].dest.x = m_sections[m_left].x;
+	m_sections[m_left].dest.y = m_sections[m_left].y;
+	m_sections[m_middle].dest.x = m_sections[m_middle].x;
+	m_sections[m_middle].dest.y = m_sections[m_middle].y;
+	m_sections[m_right].dest.x = m_sections[m_right].x;
+	m_sections[m_right].dest.y = m_sections[m_right].y;
 }
 
 Camera2D::Layer::~Layer()
@@ -96,6 +135,16 @@ Camera2D::Layer::~Layer()
 		SDL_DestroyTexture(s.texture);
 		s.texture = NULL;
 	}
+}
+
+void Camera2D::Layer::setScrollMultiplier(float scrollMultiplier)
+{
+	m_scrollMultiplier = scrollMultiplier;
+}
+
+float Camera2D::Layer::getScrollMultiplier() const
+{
+	return m_scrollMultiplier;
 }
 
 int Camera2D::Layer::clamp(int value, int min, int max)
@@ -124,14 +173,14 @@ SDL_Texture * Camera2D::Layer::loadTexture(const std::string & path, SDL_Rendere
 {
 	SDL_Texture* texture = NULL;
 
-	SDL_Surface* surface = SDL_LoadBMP(path.c_str());
+	SDL_Surface* surface = IMG_Load(path.c_str());
 	if (surface == NULL)
 	{
 		printf("Unable to load image %s! SDL_image Error: %s\n", path.c_str(), SDL_GetError());
 	}
 	else
 	{
-		SDL_SetColorKey(surface, SDL_TRUE, SDL_MapRGB(surface->format, 0xFF, 0, 0xFF));
+		//SDL_SetColorKey(surface, SDL_TRUE, SDL_MapRGB(surface->format, 0xFF, 0, 0xFF));
 		texture = SDL_CreateTextureFromSurface(renderer, surface);
 		if (texture == NULL)
 		{

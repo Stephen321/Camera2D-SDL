@@ -2,8 +2,6 @@
 
 #include "SDL.h"
 #include <vector>
-#include <numeric>
-#include <iostream>
 #include "ParallaxEffect.h"
 #include "ShakeEffect.h"
 #include "Attractor.h"
@@ -22,6 +20,7 @@ namespace Camera2D
 	const float DEFAULT_ZOOMTO_SPEED = 1.f;
 	const float DEFAULT_MIN_ZOOM = 1.5f;
 	const float DEFAULT_MAX_ZOOM = 0.5f;
+
 
 	class Camera
 	{
@@ -44,6 +43,12 @@ namespace Camera2D
 		bool intersects(const Point& p) const; //check if world point is within camera
 
 		void setMotionProps(float accelerationRate = DEFAULT_ACCEL, float maxVelocity = DEFAULT_MAX_VEL, float drag = DEFAULT_DRAG);
+
+		void setAccelerationRate(float accelerationRate);
+		float getAccelerationRate() const;
+		void setMaxVelocity(float maxVelocity);
+		float getMaxVelocity() const;
+
 		void setZoomProps(float zoomSpeed = DEFAULT_ZOOM_SPEED, float zoomToSpeed = DEFAULT_ZOOMTO_SPEED, float minZoom = DEFAULT_MIN_ZOOM,
 						  float maxZoom = DEFAULT_MAX_ZOOM);
 		void setZoomMinMax(float min = -1, float max = -1); //default to unlimited
@@ -51,19 +56,22 @@ namespace Camera2D
 		void panX(int xDir);
 		void panY(int yDir);
 		void zoom(int zoomDir);
-		void zoomTo(float target); //TODO: big gaps between rects...
+		void zoomTo(float target); 
 		void zoomTo(const Vector2& target);
 		void zoomTo(float targetX, float targetY);
-		void zoomToFit(const std::vector<Point>& points, bool keepZoomRatio = true); //TODO: okay to use vector?
+		void zoomToFit(const std::vector<Point>& points, bool keepZoomRatio = true); 
 		void zoomToFit(const std::vector<SDL_Rect>& rects, bool keepZoomRatio = true);
 		void resetZoomRatio();
 		void update(float deltaTime);
 		void render();
 		void moveBy(float x, float y);
 
-		void allowedHorizontal(bool value);
-		void allowedVertical(bool value);
-		void setLock(bool value);
+		void setAllowedHorizontal(bool value);
+		bool getAllowedHorizontal() const;
+		void setAllowedVertical(bool value);
+		bool getAllowedVertical() const;
+		void lockMotion();
+		void unlockMotion();
 
 		//effects
 		void addEffect(Effect& effect, const std::string& name = "");
@@ -75,21 +83,52 @@ namespace Camera2D
 		void endEffect(const std::string& name, bool remove = false);
 		void endEffects();
 
-		Effect* findEffect(const std::string& name);
-		Affector* findAffector(const std::string& name);
+		//template is expected return type, if incorrect then data is lost from returned type
+		template<typename T>
+		T * findEffect(const std::string & name)
+		{
+			Effect* effect = nullptr;
+			bool found = false;
+			for (int i = 0; i < m_parallaxEffects.size(); i++)
+			{
+				if (m_parallaxEffects[i].getName() == name)
+				{
+					effect = &m_parallaxEffects[i];
+					found = true;
+					break;
+				}
+			}
 
-		void stopMotion();
+			for (int i = 0; i < m_shakeEffects.size() && found == false; i++)
+			{
+				if (m_shakeEffects[i].getName() == name)
+				{
+					effect = &m_shakeEffects[i];
+					break;
+				}
+			}
 
-		//edge snapping
-		void enableEdgeSnap();
-		void setEdgeSnapIntervals(int xInterval, int yInterval, float intervalTime, bool enable = true);
-		void disableEdgeSnap();
+			if (effect != nullptr)
+				return static_cast<T*>(effect);
+			else
+				return nullptr;
+		}
+		Effect * findEffect(const std::string & name);
 
-		//affectors
-		void addAffector(Affector& affector, const std::string& name = "");
-		void removeAffector(const std::string& name);
+		Influencer* findInfluencer(const std::string& name);
+
+		void resetMotion();
+
+		//Influencers
+		void addInfluencer(Influencer& influencer, const std::string& name = "");
+		void removeInfluencer(const std::string& name);
+		void removeAllInfluencer(Influencer::Type type);
+
+		void setAttractorStopVel(float attractorStopVel);
+		float getAttractorStopVel() const;
 
 	private:
+		const float REPULSOR_WEIGHT = 0.6f;
 		void updateMotion(float deltaTime);
 		void updateZoom(float deltaTime);
 		void updateEffects(float deltaTime);
@@ -97,9 +136,11 @@ namespace Camera2D
 		float lerp(float start, float end, float percent);
 		void changeBoundsZoom();
 		float clampZoom(float num);
-		Vector2 getAffectorAccel();
+		Vector2 getInfluencorAccel();
 		Vector2 getAttractorsAccel();
 		Vector2 getRepulsorsAccel();
+
+		float m_attractorStopVel;
 
 		//effects
 		std::vector<ParallaxEffect> m_parallaxEffects;
@@ -112,10 +153,8 @@ namespace Camera2D
 		const float ATTRACTOR_ARIVE_RADIUS = 100.f;
 		const float ATTRACTOR_ARRIVED_RADIUS = 15.f;
 		const float ATTRACTOR_TIME_TO_ARRIVE = 0.5f;
-		const float ATTRACTOR_WEIGHT = 0.001f;
-		const float ATTRACTOR_STOP_VEL = 20.f;
+		const float DEFAULT_ATTRACTOR_STOP_VEL = 20.f;
 		std::vector<Repulsor> m_repulsors;
-		const float REPULSOR_WEIGHT = 0.01f;
 
 
 		SDL_Rect m_bounds;
@@ -123,14 +162,6 @@ namespace Camera2D
 
 		int m_windowWidth;
 		int m_windowHeight;
-
-		//edge snapping
-		bool m_edgeSnapping;
-		int m_xEdgeInterval;
-		float m_xStart;
-		int m_yEdgeInterval;
-		float m_intervalTime;
-		float m_intervalElapsedTime;
 
 		//motion props
 		float m_accelerationRate;
@@ -143,8 +174,6 @@ namespace Camera2D
 		float m_timeSinceLastXAccel;
 		float m_timeSinceLastYAccel;
 		const float MAX_TIME_BEFORE_ACCEL_RESET = 0.5f;
-
-		//TODO: should we use sdl image to render other formats than bmp??
 
 		bool m_allowedHorizontal;
 		bool m_allowedVertical;

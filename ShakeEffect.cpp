@@ -15,7 +15,7 @@ void Camera2D::ShakeEffect::update(float deltaTime)
 	m_shakeOffset.x = 0.f;
 	m_shakeOffset.y = 0.f;
 
-	float randomStart = randomNumberF(-m_startRange, m_startRange); 
+	float randomStart = randomNumberF(-m_startRange, m_startRange);
 	m_elapsedTime += deltaTime;
 
 	float percentComplete = m_elapsedTime / m_duration;
@@ -37,10 +37,6 @@ void Camera2D::ShakeEffect::update(float deltaTime)
 
 	if (m_elapsedTime >= m_duration)
 	{
-		//elapsed = 0;
-		m_elapsedTime = 0.f;
-		m_shakeOffset.x = 0.f;
-		m_shakeOffset.y = 0.f;
 		setEnabled(false);
 	}
 }
@@ -58,14 +54,31 @@ void Camera2D::ShakeEffect::setDuration(float duration)
 	m_duration = duration;
 }
 
+float Camera2D::ShakeEffect::getDuration() const
+{
+	return m_duration;
+}
+
 void Camera2D::ShakeEffect::setSpeed(float speed)
 {
 	m_speed = speed;
 }
 
+float Camera2D::ShakeEffect::getSpeed() const
+{
+	return m_speed;
+}
+
 void Camera2D::ShakeEffect::setMagnitude(float magnitude)
 {
 	m_magnitude = magnitude;
+	if (m_magnitude < 0.f)
+		m_magnitude = 0.f;
+}
+
+float Camera2D::ShakeEffect::getMagnitude() const
+{
+	return m_magnitude;
 }
 
 void Camera2D::ShakeEffect::setRange(float range)
@@ -73,7 +86,24 @@ void Camera2D::ShakeEffect::setRange(float range)
 	m_startRange = range;
 }
 
+float Camera2D::ShakeEffect::getRange() const
+{
+	return m_startRange;
+}
+
 Camera2D::Vector2 Camera2D::ShakeEffect::getShakeOffset() const
 {
 	return m_shakeOffset;
+}
+
+void Camera2D::ShakeEffect::setEnabled(bool enabled)
+{
+	if (enabled == false)
+	{
+		m_elapsedTime = 0.f;
+		m_shakeOffset.x = 0.f;
+		m_shakeOffset.y = 0.f;
+	}
+
+	Effect::setEnabled(enabled);
 }

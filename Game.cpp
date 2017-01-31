@@ -28,41 +28,31 @@ bool Game::initialize(const char* title, int width, int height, int flags)
 	}
 	m_running = true;
 
+	//init with size and renderer
 	m_camera.init(width, height, m_renderer.getSDLRenderer());
+	m_camera.setCentre(1000.f, 700.f);
 
-
-	m_rects.push_back({ 0, 0, RECT_WIDTH, RECT_HEIGHT });
-	m_rects.push_back({ 100, 0, RECT_WIDTH, RECT_HEIGHT });
-	m_rects.push_back({ -250, -100, RECT_WIDTH, RECT_HEIGHT });
-	m_rects.push_back({ 500, 50, RECT_WIDTH, RECT_HEIGHT });
-	m_rects.push_back({ 200, 300, RECT_WIDTH, RECT_HEIGHT });
-
-	m_points.push_back(Camera2D::Point(0.f, 0.f));
-	m_points.push_back(Camera2D::Point(150.f, 0.f));
-	m_points.push_back(Camera2D::Point(0.f, 150.f));
-	m_points.push_back(Camera2D::Point(300.f, 0.f));
-	m_points.push_back(Camera2D::Point(0.f, -300.f));
-
-	m_background = loadTexture("background.bmp");
+	m_background = loadTexture("assets/background.png");
 	int backgroundWidth, backgroundHeight;
 	SDL_QueryTexture(m_background, NULL, NULL, &backgroundWidth, &backgroundHeight);
 	m_backgroundRect = {0, 0, backgroundWidth, backgroundHeight};
 
+	m_attractorTexture = loadTexture("assets/attractor.png");
+	m_repulsorTexture = loadTexture("assets/repulsor.png");
 
+	//set unlimited min and max zoom
 	m_camera.setZoomMinMax(-1, -1.f);
 
-	Camera2D::ParallaxEffect pe(true);
-	pe.addLayer(Camera2D::Layer("parallax/stars", 0.2f, 3));
-	pe.addLayer(Camera2D::Layer("parallax/mountains", 0.6f, 7));
-	pe.addLayer(Camera2D::Layer("parallax/surface", 0.8f, 9));
-	pe.setName("parallaxEffect1");
-	m_camera.addEffect(pe);
+	//create and add parallax effect named "parallax"
+	Camera2D::ParallaxEffect pe;
+	// add layer "stars" with textures found in assets/starts, scroll multiplier of 0.2, default to loading in 3 sections as that is how many there is
+	//if set to less than 3 then copy of texture is used
+	pe.addLayer("stars", Camera2D::Layer("assets/stars", 0.2f));
+	pe.addLayer("mountains", Camera2D::Layer("assets/mountains", 0.6f, 7));
+	pe.addLayer("surface", Camera2D::Layer("assets/surface", 2.f, 9));
+	m_camera.addEffect(pe, "parallax");
 
-
-	m_camera.startEffect("parallaxEffect1");
-
-	m_camera.endEffect("parallaxEffect1");
-
+	//create shake effect
 	Camera2D::ShakeEffect se;
 	float duration = 2.f;
 	float speed = 2.f;
@@ -70,14 +60,6 @@ bool Game::initialize(const char* title, int width, int height, int flags)
 	se.setProps(duration, speed, magnitude);
 	m_camera.addEffect(se, "shake");
 
-
-	//m_camera.setEdgeSnapIntervals(50.f, 50.f, 1.f);
-
-	Camera2D::Repulsor testAttractor;
-	testAttractor.setProps(Camera2D::Vector2(500.f, 0.f));
-	m_camera.addAffector(testAttractor, "repoulsor");
-
-	m_testAttractorRect = { 500, -5, 10, 10};
 	return true;
 }
 
@@ -86,52 +68,58 @@ void Game::render()
 {
 	m_renderer.clear();
 
+	//default background
+	m_renderer.drawTexture(m_background, NULL, &m_backgroundRect);
 
-	m_renderer.drawTexture(m_background, NULL, &m_camera.worldToScreen(m_backgroundRect));
+	//parallax background
 	m_camera.render();
 
-
-	
-	m_renderer.drawOutlineRect(m_camera.getBounds(), Colour(0, 255, 255, 255));
-
+	//attractors
+	for (const SDL_Rect& rect : m_attractorRects)
+	{
+		m_renderer.drawTexture(m_attractorTexture, NULL, &rect);
+	}
+	//repulsors
+	for (const SDL_Rect& rect : m_repulsorRects)
+	{
+		m_renderer.drawTexture(m_repulsorTexture, NULL, &rect);
+	}
+	//rects
 	for (const SDL_Rect& rect : m_rects)
 	{
-		m_renderer.drawRect(rect, Colour(255, 0, 0, 255));
+		m_renderer.drawRect(rect, Colour(0, 0, 255, 255));
 	}
-
-	m_renderer.drawRect({ 0, 0, 100, 5 }, Colour(255, 0, 0, 255)); //x axis
-	m_renderer.drawRect({ 0, 0, 5, 100 }, Colour(0, 255, 0, 255)); //y axis
-	m_renderer.drawRect({ 0, 0, 5, 5 }, Colour(0, 0, 255, 255));   //z axis
-
-	m_renderer.drawRect({ m_testAttractorRect.x - 300, m_testAttractorRect.y - 300, 600, 600 }, Colour(0, 128, 0, 255)); //attractor range
-	m_renderer.drawRect(m_testAttractorRect, Colour(0, 255, 0, 255)); //attractor
-
+	//points
 	for (const Camera2D::Point& point : m_points)
 	{
 		SDL_Rect r = { (int)(point.x - POINT_SIZE * 0.5f), (int)(point.y - POINT_SIZE * 0.5f), POINT_SIZE, POINT_SIZE };
-		m_renderer.drawRect(r, Colour(255, 255, 255, 255));
+		m_renderer.drawRect(r, Colour(255, 0, 0, 255));
 	}
-
-	m_renderer.drawRect({ (int)m_camera.getCentre().x - 5,(int)m_camera.getCentre().y - 5, 10, 10}, Colour(255, 255, 0, 255)); //test
-
 
 	m_renderer.present();
 }
 
 void Game::update()
 {
+	//get delta time
 	unsigned int currentTime = LTimer::gameTime();//millis since game started
 	float deltaTime = (currentTime - m_lastTime) / 1000.f;//time since last update
 
-	m_camera.update(deltaTime);
-													
+	//update camera
+	if (deltaTime < 60.f / 1000.f)
+		m_camera.update(deltaTime);
+				
+	//remember time
 	m_lastTime = currentTime;//save the curent time for next frame
 }
 
 void Game::handleEvents()
 {
 	SDL_Event event;
-
+	//update our view of the keyboard state
+	const Uint8 * keyboardState = SDL_GetKeyboardState(NULL);
+	
+	//poll events 1 by 1 
 	while (SDL_PollEvent(&event))
 	{
 		switch (event.type)
@@ -142,18 +130,50 @@ void Game::handleEvents()
 			case SDLK_ESCAPE:
 				m_running = false;
 				break;
-			case SDLK_UP:
-				m_camera.panY(-1);
+			case SDLK_y:
+				m_camera.setMaxVelocity(m_camera.getMaxVelocity() + 1.f);
+				std::cout << "Max velocity: " << m_camera.getMaxVelocity() << std::endl;
 				break;
-			case SDLK_DOWN:
-				m_camera.panY(1);
+			case SDLK_g:
+				m_camera.setMaxVelocity(m_camera.getMaxVelocity() - 1.f);
+				std::cout << "Max velocity: " << m_camera.getMaxVelocity() << std::endl;
 				break;
-			case SDLK_LEFT:
-				m_camera.panX(-1);
+			case SDLK_u:
+				m_camera.setAccelerationRate(m_camera.getAccelerationRate() + 1.f);
+				std::cout << "Acceleration rate: " << m_camera.getAccelerationRate() << std::endl;
 				break;
-			case SDLK_RIGHT:
-				m_camera.panX(1);
+			case SDLK_h:
+				m_camera.setAccelerationRate(m_camera.getAccelerationRate() - 1.f);
+				std::cout << "Acceleration rate: " << m_camera.getAccelerationRate() << std::endl;
 				break;
+			case SDLK_o: //increase parallax stars scroll speed
+			{
+				Camera2D::Layer * layer = m_camera.findEffect<Camera2D::ParallaxEffect>("parallax")->getLayer("surface");
+				layer->setScrollMultiplier(layer->getScrollMultiplier() + 0.1f);
+				std::cout << "Surface scroll multiplier rate: " << layer->getScrollMultiplier() << std::endl;
+				break;
+			}
+			case SDLK_k: //decrease parallax stars scroll speed
+			{ 
+				Camera2D::Layer * layer = m_camera.findEffect<Camera2D::ParallaxEffect>("parallax")->getLayer("surface");
+				layer->setScrollMultiplier(layer->getScrollMultiplier() - 0.1f);
+				std::cout << "Surface scroll multiplier rate: " << layer->getScrollMultiplier() << std::endl;
+				break;
+			}
+			case SDLK_i: //increase shake magnitude
+			{
+				Camera2D::ShakeEffect * shakeEffect = m_camera.findEffect<Camera2D::ShakeEffect>("shake");
+				shakeEffect->setMagnitude(shakeEffect->getMagnitude() + 0.1f);
+				std::cout << "Shake magnitude: " << shakeEffect->getMagnitude() << std::endl;
+				break;
+			}
+			case SDLK_j: //decrease shake magnitude
+			{ //TODO press this at the same time you move left/right
+				Camera2D::ShakeEffect * shakeEffect = m_camera.findEffect<Camera2D::ShakeEffect>("shake");
+				shakeEffect->setMagnitude(shakeEffect->getMagnitude() - 0.1f);
+				std::cout << "Shake magnitude: " << shakeEffect->getMagnitude() << std::endl;
+				break;
+			}
 			default:
 				break;
 			}
@@ -161,20 +181,115 @@ void Game::handleEvents()
 		case SDL_KEYUP:
 			switch (event.key.keysym.sym)
 			{
+			case SDLK_1:
+				m_camera.setAllowedHorizontal(!m_camera.getAllowedHorizontal());
+				std::cout << "Set Allowed Horizontal to: " << ((m_camera.getAllowedHorizontal()) ? "true" : "false") << std::endl;
+				break;
+			case SDLK_2:
+				m_camera.setAllowedVertical(!m_camera.getAllowedVertical());
+				std::cout << "Set Allowed Vertical to: " << ((m_camera.getAllowedVertical()) ? "true" : "false") << std::endl;
+				break;
+			case SDLK_3:
+				if (m_camera.getAllowedHorizontal() == false && m_camera.getAllowedVertical() == false)
+				{
+					m_camera.unlockMotion();
+					std::cout << "Unlocked" << std::endl;
+				}
+				else
+				{
+					m_camera.lockMotion();
+					std::cout << "Locked" << std::endl;
+				}
+				break;
+			case SDLK_LEFTBRACKET:
+				m_camera.zoomTo(3.f);
+				std::cout << "Zooming to 3.f" << std::endl;
+				break;
+			case SDLK_RIGHTBRACKET:
+				m_camera.zoomTo(0.f);
+				std::cout << "Zooming to 0.f" << std::endl;
+				break;
 			case SDLK_z:
-				m_camera.zoomTo(5.f);
+				m_camera.zoomToFit(m_rects);
+				std::cout << "Zoom to fit rectangles" << std::endl;
 				break;
 			case SDLK_x:
-				m_camera.zoomToFit(m_points, false);
+				m_camera.zoomToFit(m_points);
+				std::cout << "Zoom to fit points" << std::endl;
 				break;
 			case SDLK_c:
-				m_camera.zoomToFit(m_rects);
+				m_camera.zoomToFit(m_points, false);
+				std::cout << "Zoom to fit points without preserving aspect ratio" << std::endl;
 				break;
+			case SDLK_a:
+			{
+				int x;
+				int y;
+				SDL_GetMouseState(&x, &y);
+
+				Camera2D::Attractor attractor;
+				Camera2D::Vector2 v(x, y);
+				v = m_camera.screenToWorld(v);
+				attractor.setProps(v);
+				m_camera.addInfluencer(attractor, "" + m_attractorRects.size());
+				m_attractorRects.push_back({ (int)(v.x - INFLUENCER_RANGE * 0.5f), (int)(v.y - INFLUENCER_RANGE * 0.5f), INFLUENCER_RANGE , INFLUENCER_RANGE });
+				std::cout << "Create Attractor at : (" << x << ", " << y << ")" << std::endl;
+				break;
+			}
+			case SDLK_r:
+			{
+				int x;
+				int y;
+				SDL_GetMouseState(&x, &y);
+
+				Camera2D::Repulsor repulsor;
+				Camera2D::Vector2 v(x, y);
+				v = m_camera.screenToWorld(v);
+				repulsor.setProps(v);
+				m_camera.addInfluencer(repulsor, "" + m_repulsorRects.size());
+				m_repulsorRects.push_back({ (int)(v.x - INFLUENCER_RANGE * 0.5f), (int)(v.y - INFLUENCER_RANGE * 0.5f), INFLUENCER_RANGE , INFLUENCER_RANGE });
+				std::cout << "Create Repulsor at : (" << x << ", " << y << ")" << std::endl;
+				break;
+			}
 			case SDLK_v:
 				m_camera.setZoomMinMax(-1.f, 0.5f);
+				std::cout << "set zoom min to unlimited and max to 0.5f" << std::endl;
 				break;
 			case SDLK_s:
-				m_camera.startEffect("shake");
+				if (m_camera.findEffect("shake")->getEnabled())
+				{
+					m_camera.endEffect("shake");
+					std::cout << "End shake" << std::endl;
+				}
+				else
+				{
+					m_camera.startEffect("shake");
+					std::cout << "Start shake" << std::endl;
+				}
+				break;
+			case SDLK_p:
+				if (m_camera.findEffect("parallax")->getEnabled())
+				{
+					m_camera.endEffect("parallax");
+					std::cout << "End parallax" << std::endl;
+				}
+				else
+				{
+					m_camera.startEffect("parallax");
+					std::cout << "Start parallax" << std::endl;
+				}
+				break;
+			case SDLK_q:
+				m_rects.clear();
+				m_points.clear();
+				std::cout << "Clear rects and points" << std::endl;
+				break;
+			case SDLK_w:
+				m_attractorRects.clear();
+				m_camera.removeAllInfluencer(Camera2D::Influencer::Type::Attractor);
+				m_repulsorRects.clear();
+				m_camera.removeAllInfluencer(Camera2D::Influencer::Type::Repulsor);
+				std::cout << "Clear attractors and repulsors" << std::endl;
 				break;
 			default:
 				break;
@@ -191,13 +306,45 @@ void Game::handleEvents()
 				m_camera.zoom(-1);
 			}
 			break;
-		case SDL_MOUSEMOTION:
-			//debug
-			//Camera2D::Point p(event.motion.x, event.motion.y);
-			//p = m_camera.screenToWorld(p);
-			//std::cout << "Mosue X: " << p.x << " , " << p.y << std::endl;
-			break;
+		case SDL_MOUSEBUTTONUP:
+			switch (event.button.button)
+			{
+			case SDL_BUTTON_LEFT:
+			{
+				Camera2D::Point point((int)(event.button.x - RECT_WIDTH * 0.5f), (int)(event.button.y - RECT_HEIGHT * 0.5f));
+				point = m_camera.screenToWorld(point);
+				m_rects.push_back({ (int)point.x, (int)point.y, RECT_WIDTH, RECT_HEIGHT });
+
+				std::cout << "Create rect at (" << point.x << ", " << point.y << ")" << std::endl;
+				break;
+			}
+			case SDL_BUTTON_RIGHT:
+			{
+				Camera2D::Point point((int)(event.button.x), (int)(event.button.y));
+				point = m_camera.screenToWorld(point);
+				m_points.push_back(point);
+				std::cout << "Create point at (" << point.x << ", " << point.y << ")" << std::endl;
+				break;
+			}
+			}
 		}
+	}
+
+	if (keyboardState[SDL_SCANCODE_RIGHT])
+	{
+		m_camera.panX(1);
+	}
+	else if (keyboardState[SDL_SCANCODE_LEFT])
+	{
+		m_camera.panX(-1);
+	}
+	if (keyboardState[SDL_SCANCODE_UP])
+	{
+		m_camera.panY(-1);
+	}
+	else if (keyboardState[SDL_SCANCODE_DOWN])
+	{
+		m_camera.panY(1);
 	}
 }
 
@@ -218,7 +365,7 @@ SDL_Texture * Game::loadTexture(const std::string & path)
 {
 	SDL_Texture* texture = NULL;
 
-	SDL_Surface* surface = SDL_LoadBMP(path.c_str());
+	SDL_Surface* surface = IMG_Load(path.c_str());
 	if (surface == NULL)
 	{
 		printf("Unable to load image %s! SDL_image Error: %s\n", path.c_str(), SDL_GetError());

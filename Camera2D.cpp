@@ -9,14 +9,12 @@ Camera2D::Camera::Camera()
 	, m_zoomToSpeed(DEFAULT_ZOOMTO_SPEED)
 	, m_minZoom(DEFAULT_MIN_ZOOM)
 	, m_maxZoom(DEFAULT_MAX_ZOOM)
+	, m_attractorStopVel(DEFAULT_ATTRACTOR_STOP_VEL)
 	, m_zoomToActive(false)
 	, m_zoomToFitActive(false)
 	, m_allowedHorizontal(true)
 	, m_allowedVertical(true)
 	, m_bounds({0,0,0,0})
-	, m_edgeSnapping(false)
-	, m_xEdgeInterval(0)
-	, m_yEdgeInterval(0)
 {
 }
 
@@ -116,11 +114,11 @@ SDL_Rect Camera2D::Camera::screenToWorld(const SDL_Rect& sr) const
 	SDL_Rect r = sr;
 
 	Point p(r.x, r.y);
-	screenToWorld(p);
+	p = screenToWorld(p);
 	r.x = p.x;
 	r.y = p.y;
 	r.w = (int)(r.w / xScale);
-	r.h /= (int)(r.h / yScale);
+	r.h = (int)(r.h / yScale);
 
 	return r;
 }
@@ -152,6 +150,30 @@ void Camera2D::Camera::setMotionProps(float accelerationRate, float maxVelocity,
 	m_accelerationRate = accelerationRate;
 	m_maxVelocity = maxVelocity;
 	m_drag = drag;
+}
+
+void Camera2D::Camera::setAccelerationRate(float accelerationRate)
+{
+	m_accelerationRate = accelerationRate;
+	if (m_accelerationRate < 0.f)
+		m_accelerationRate = 0.f;
+}
+
+float Camera2D::Camera::getAccelerationRate() const
+{
+	return m_accelerationRate;
+}
+
+void Camera2D::Camera::setMaxVelocity(float maxVelocity)
+{
+	m_maxVelocity = maxVelocity;
+	if (m_maxVelocity < 0.f)
+		m_maxVelocity = 0.f;
+}
+
+float Camera2D::Camera::getMaxVelocity() const
+{
+	return m_maxVelocity;
 }
 
 void Camera2D::Camera::setZoomProps(float zoomSpeed, float zoomToSpeed, float minZoom, float maxZoom)
@@ -251,8 +273,6 @@ void Camera2D::Camera::zoomTo(const Vector2& target)
 
 void Camera2D::Camera::zoomTo(float targetX, float targetY) 
 {
-	endEffect(Effect::Type::Shake); //TODO: dont end but do both instead 
-
 	targetX = clampZoom(targetX);
 	targetY = clampZoom(targetY);
 
@@ -268,7 +288,7 @@ void Camera2D::Camera::zoomTo(float targetX, float targetY)
 
 void Camera2D::Camera::zoomTo(float target)
 {
-	target = (target <= 0.f) ? m_zoomToSpeed : target;
+	target = (target <= 0.f) ? 0.1f : target;
 
 	if (target < m_maxZoom)
 	{
@@ -278,7 +298,7 @@ void Camera2D::Camera::zoomTo(float target)
 	{
 		target = m_minZoom;
 	}
-	m_zoomTarget.x = target; //TODO: change x and y seperately
+	m_zoomTarget.x = target; 
 	m_zoomTarget.y = target;
 
 	m_zoomStart = m_zoom;
@@ -290,10 +310,12 @@ void Camera2D::Camera::zoomTo(float target)
 
 void Camera2D::Camera::zoomToFit(const std::vector<SDL_Rect>& rects, bool keepZoomRatio)
 {
-	float minX = std::numeric_limits<float>::max();
-	float minY = std::numeric_limits<float>::max();
-	float maxX = std::numeric_limits<float>::min();
-	float maxY = std::numeric_limits<float>::min();
+	if (rects.size() < 2)
+		return;
+	float minX = (float)INT_MAX;
+	float minY = (float)INT_MAX;
+	float maxX = -(float)INT_MAX;
+	float maxY = -(float)INT_MAX;
 	bool allRectsVisible = true;
 	for (unsigned int i = 0; i < rects.size(); i++)
 	{
@@ -342,12 +364,12 @@ void Camera2D::Camera::resetZoomRatio()
 
 void Camera2D::Camera::zoomToFit(const std::vector<Point>& points, bool keepZoomRatio)
 {
-	endEffect(Effect::Type::Shake); //TODO: dont end but do both instead
-
-	float minX = INT_MAX;
-	float minY = INT_MAX;
-	float maxX = -INT_MAX;
-	float maxY = -INT_MAX;
+	if (points.size() < 2)
+		return;
+	float minX = (float)INT_MAX;
+	float minY = (float)INT_MAX;
+	float maxX = -(float)INT_MAX;
+	float maxY = -(float)INT_MAX;
 	bool allPointsVisible = true;
 	for (unsigned int i = 0; i < points.size(); i++)
 	{
@@ -366,8 +388,8 @@ void Camera2D::Camera::zoomToFit(const std::vector<Point>& points, bool keepZoom
 	//if (allPointsVisible)
 	//	return;
 	m_zoomToFitStart = m_centre;
-	m_zoomToFitTarget.x = (maxX - abs(minX)) * 0.5f;
-	m_zoomToFitTarget.y = (maxY - abs(minY)) * 0.5f;
+	m_zoomToFitTarget.x = minX + abs(maxX - minX) * 0.5f;
+	m_zoomToFitTarget.y = minY + abs(maxY - minY) * 0.5f;
 
 	m_zoomToFitActive = true;
 	m_zoomToFitTime = 0.f;
@@ -389,7 +411,6 @@ void Camera2D::Camera::zoomToFit(const std::vector<Point>& points, bool keepZoom
 		}
 
 		float zoomTarget = desiredSize / windowSize;
-		std::cout << "window size: " << windowSize << " desiredSize: " << desiredSize << " zoomTarget: " << zoomTarget << std::endl;
 		zoomTo(zoomTarget);
 	}
 	else
@@ -400,8 +421,10 @@ void Camera2D::Camera::zoomToFit(const std::vector<Point>& points, bool keepZoom
 		zoomTo(zoomTarget);
 	}
 
-	if (m_zoomToMaxTime == 0.f)
-		m_zoomToFitMaxTime = (m_zoomToFitTarget - m_centre).length() / m_maxVelocity;
+	m_zoomToFitMaxTime = (m_zoomToFitTarget - m_centre).length() / m_maxVelocity;
+
+	if (m_zoomToFitMaxTime > m_zoomToMaxTime)
+		m_zoomToMaxTime = m_zoomToFitMaxTime;
 	else
 		m_zoomToFitMaxTime = m_zoomToMaxTime;
 
@@ -419,8 +442,7 @@ void Camera2D::Camera::update(float deltaTime)
 
 
 void Camera2D::Camera::startEffect(Effect::Type type)
-{ //TODO: restart?
-
+{ 
 	endEffect(type);
 
 	if (m_parallaxEffects.empty() == false)
@@ -535,17 +557,18 @@ void Camera2D::Camera::endEffects()
 Camera2D::Effect * Camera2D::Camera::findEffect(const std::string & name)
 {
 	Effect* effect = nullptr;
-
+	bool found = false;
 	for (int i = 0; i < m_parallaxEffects.size(); i++)
 	{
 		if (m_parallaxEffects[i].getName() == name)
 		{
 			effect = &m_parallaxEffects[i];
+			found = true;
 			break;
 		}
 	}
 
-	for (int i = 0; i < m_shakeEffects.size(); i++)
+	for (int i = 0; i < m_shakeEffects.size() && found == false; i++)
 	{
 		if (m_shakeEffects[i].getName() == name)
 		{
@@ -557,9 +580,9 @@ Camera2D::Effect * Camera2D::Camera::findEffect(const std::string & name)
 	return effect;
 }
 
-Camera2D::Affector * Camera2D::Camera::findAffector(const std::string & name)
+Camera2D::Influencer * Camera2D::Camera::findInfluencer(const std::string & name)
 {
-	Affector* affector = nullptr;
+	Influencer* affector = nullptr;
 
 	for (int i = 0; i < m_attractors.size(); i++)
 	{
@@ -582,7 +605,7 @@ Camera2D::Affector * Camera2D::Camera::findAffector(const std::string & name)
 	return affector;
 }
 
-void Camera2D::Camera::stopMotion()
+void Camera2D::Camera::resetMotion()
 {
 	m_acceleration.x = 0.f;
 	m_acceleration.y = 0.f;
@@ -627,41 +650,23 @@ void Camera2D::Camera::removeEffect(Effect::Type type)
 	}
 }
 
-void Camera2D::Camera::enableEdgeSnap()
-{
-	m_edgeSnapping = true;
-}
-
-void Camera2D::Camera::setEdgeSnapIntervals(int xInterval, int yInterval, float intervalTime, bool enable)
-{
-	m_xEdgeInterval = xInterval;
-	m_yEdgeInterval = yInterval;
-	m_intervalTime = intervalTime;
-	m_edgeSnapping = enable;
-}
-
-void Camera2D::Camera::disableEdgeSnap()
-{
-	m_edgeSnapping = false;
-}
-
-void Camera2D::Camera::addAffector(Affector & affector, const std::string & name)
+void Camera2D::Camera::addInfluencer(Influencer & affector, const std::string & name)
 {
 	if (affector.getName() == "") //name hasnt been set yet
 		affector.setName(name);
 
 	switch (affector.getType())
 	{
-	case Affector::Type::Attractor:
+	case Influencer::Type::Attractor:
 		m_attractors.push_back((static_cast<Attractor&>(affector)));
 		break;
-	case Affector::Type::Repulsor:
+	case Influencer::Type::Repulsor:
 		m_repulsors.push_back((static_cast<Repulsor&>(affector)));
 		break;
 	}
 }
 
-void Camera2D::Camera::removeAffector(const std::string & name)
+void Camera2D::Camera::removeInfluencer(const std::string & name)
 {
 	for (int i = 0; i < m_attractors.size(); i++)
 	{
@@ -682,10 +687,30 @@ void Camera2D::Camera::removeAffector(const std::string & name)
 	}
 }
 
+void Camera2D::Camera::removeAllInfluencer(Influencer::Type type)
+{
+	if (type == Influencer::Type::Attractor)
+		m_attractors.clear();
+	if (type == Influencer::Type::Repulsor)
+		m_repulsors.clear();
+}
+
+void Camera2D::Camera::setAttractorStopVel(float attractorStopVel)
+{
+	m_attractorStopVel = attractorStopVel;
+}
+
+float Camera2D::Camera::getAttractorStopVel() const
+{
+	return m_attractorStopVel;
+}
+
 void Camera2D::Camera::updateMotion(float deltaTime)
 {
 	if (m_zoomToFitActive)
 	{
+		m_acceleration.limit(0.f);
+		m_velocity.limit(0.f);
 		float percent = m_zoomToFitTime / m_zoomToFitMaxTime;
 		if (percent > 1.f)
 		{
@@ -698,12 +723,18 @@ void Camera2D::Camera::updateMotion(float deltaTime)
 			m_zoomToFitTime += deltaTime;
 		}
 	}
+	else
+	{
 
-	m_acceleration += getAffectorAccel();
-	m_acceleration.limit(m_accelerationRate);
-	m_velocity += m_acceleration * deltaTime;
-	m_velocity.limit(m_maxVelocity);
-	m_timeSinceLastXAccel += deltaTime; //TODO: make motion better as it seems to stop at some poitns
+		m_acceleration += getInfluencorAccel();
+		m_acceleration.limit(m_accelerationRate);
+		m_velocity += m_acceleration * deltaTime;
+
+		m_centre += m_velocity * deltaTime;
+		m_velocity.limit(m_maxVelocity);
+	}
+
+	m_timeSinceLastXAccel += deltaTime;
 	m_timeSinceLastYAccel += deltaTime;
 
 	if (m_timeSinceLastXAccel > MAX_TIME_BEFORE_ACCEL_RESET && m_zoomToFitActive == false) //too long since last x accel
@@ -734,43 +765,9 @@ void Camera2D::Camera::updateMotion(float deltaTime)
 		m_acceleration.limit(0.f);
 	}
 
-	//if (m_edgeSnapping)
-	//{
-		/*m_intervalElapsedTime += deltaTime;
 
-		float percent = m_intervalElapsedTime / m_intervalTime;
-
-		Vector2 vel;
-		if (m_acceleration.x > 0.f)
-		{
-			if (m_xStart == 0.f)
-				m_xStart = m_centre.x;
-			vel.x = 1.f;
-		}
-		else if (m_acceleration.x < 0.f)
-		{
-			if (m_xStart == 0.f)
-				m_xStart = m_centre.x;
-			vel.x = -1.f;
-		}
-		if (percent < 1.f)
-		{
-			m_centre.x = lerp(m_xStart, m_xStart + (vel.x * m_xEdgeInterval), percent);
-		}
-		else
-		{
-			m_intervalElapsedTime = 0.f;
-		}
-		std::cout << m_centre.x << std::endl;*/
-		/*if (((int)m_centre.x % m_xEdgeInterval) != 0)
-		{
-			m_centre.x = ((int)m_centre.x / m_xEdgeInterval) * m_xEdgeInterval;
-		}*/
-	//}
-	m_centre += m_velocity * deltaTime;
 	m_bounds.x = (int)(m_centre.x - m_bounds.w * 0.5f);
 	m_bounds.y = (int)(m_centre.y - m_bounds.h * 0.5f);
-
 }
 
 void Camera2D::Camera::updateZoom(float deltaTime)
@@ -796,6 +793,8 @@ void Camera2D::Camera::updateZoom(float deltaTime)
 			m_zoom = lerp(m_zoomStart, m_zoomTarget, percent);
 			m_zoomToTime += deltaTime;
 		}
+		m_zoom.x = roundf(m_zoom.x * 1000) / 1000;
+		m_zoom.y = roundf(m_zoom.y * 1000) / 1000;
 		changeBoundsZoom();
 	}
 }
@@ -805,12 +804,20 @@ void Camera2D::Camera::updateEffects(float deltaTime)
 	//parallax
 	if (m_currentParallax != nullptr)
 	{
-		float parallaxSpeed = (m_currentParallax->getScrollX()) ? -m_velocity.x : -m_velocity.y;
+		Vector2 parallaxVel = m_velocity * -1.f;
 		if (m_zoomToFitActive)
 		{
-			parallaxSpeed = (m_centre.x < m_zoomToFitTarget.x) ? -m_maxVelocity : m_maxVelocity;
+			parallaxVel.x = (m_centre.x < m_zoomToFitTarget.x) ? -m_maxVelocity : m_maxVelocity;
+			parallaxVel.y = (m_centre.y < m_zoomToFitTarget.y) ? -m_maxVelocity : m_maxVelocity;
 		}
-		m_currentParallax->update(parallaxSpeed * deltaTime, worldToScreen(m_bounds)); //TODO: make shake affect this
+		if (m_currentShake != nullptr && m_currentShake->getEnabled()) //if shaking the add shake offset
+		{
+			m_currentParallax->update(parallaxVel * deltaTime, worldToScreen(m_bounds), m_currentShake->getShakeOffset());
+		}
+		else
+		{
+			m_currentParallax->update(parallaxVel * deltaTime, worldToScreen(m_bounds));
+		}
 	}
 
 	if (m_currentShake != nullptr)
@@ -869,36 +876,47 @@ float Camera2D::Camera::clampZoom(float num)
 	return num;
 }
 
-Camera2D::Vector2 Camera2D::Camera::getAffectorAccel()
+Camera2D::Vector2 Camera2D::Camera::getInfluencorAccel()
 {
 	Vector2 accel;
 
-	accel += getAttractorsAccel() * ATTRACTOR_WEIGHT;
-	accel += getRepulsorsAccel() * REPULSOR_WEIGHT; 
+	if (m_zoomToFitActive == false) //influencors dont stop zoom tos
+	{
+		accel += getAttractorsAccel() * REPULSOR_WEIGHT;
+		accel += getRepulsorsAccel() * REPULSOR_WEIGHT;
+	}
+
+	if (m_allowedHorizontal && accel.x != 0.f)
+	{
+		m_timeSinceLastXAccel = 0.f;
+	}
+	if (m_allowedVertical && accel.y != 0.f)
+	{
+		m_timeSinceLastYAccel = 0.f;
+	}
 
 	return accel;
 }
 
 Camera2D::Vector2 Camera2D::Camera::getAttractorsAccel()
 {
-	Vector2 result;
 
-	Vector2 attractorForceSum(0, 0);
-	int attractorCount = 0;
+	Vector2 target;
+	int indexOf = -1;
 	for (int i = 0; i < m_attractors.size(); i++)
 	{
 		float d = (m_attractors[i].getPosition() - m_centre).length();
 		if (d > 0 && d < m_attractors[i].getRange())
 		{
-			attractorForceSum += m_attractors[i].getPosition();
-			attractorCount++;
+			target += m_attractors[i].getPosition();
+			indexOf = i;
+			break;
 		}
 	}
-	if (attractorCount > 0)
+	if (indexOf >= 0)
 	{
-		attractorForceSum /= (float)attractorCount;
 
-		Vector2 desired = attractorForceSum - m_centre;
+		Vector2 desired = target - m_centre;
 		float d = desired.length();
 
 		float targetSpeed;
@@ -916,33 +934,23 @@ Camera2D::Vector2 Camera2D::Camera::getAttractorsAccel()
 		desired = targetVelocity - m_velocity;
 		desired /= ATTRACTOR_TIME_TO_ARRIVE;
 		desired.limit(m_accelerationRate);
-		result = desired;
+		target = desired;
 
-		if (d > ATTRACTOR_ARRIVED_RADIUS)
+		if (d < ATTRACTOR_ARRIVED_RADIUS)
 		{
-			if (m_allowedHorizontal && result.x != 0.f)
-			{
-				m_timeSinceLastXAccel = 0.f;
-				m_zoomToFitActive = false;
-			}
-			if (m_allowedVertical && result.y != 0.f)
-			{
-				m_timeSinceLastYAccel = 0.f;
-				m_zoomToFitActive = false;
-			}
-		}
-		else
-		{
-			m_acceleration += m_velocity * -0.1f;
-			if (m_velocity.length() < ATTRACTOR_STOP_VEL)
+			m_acceleration += m_velocity * -(1 - m_drag);
+			if (m_velocity.length() > m_attractorStopVel * 0.5f && m_velocity.length() < m_attractorStopVel)
 			{
 				m_velocity.x = 0.f;
 				m_velocity.y = 0.f;
 			}
+			target.limit(0.f);
 		}
+
+		target = target * m_attractors[indexOf].getStrength();
 	}
 
-	return result;
+	return target;
 }
 
 Camera2D::Vector2 Camera2D::Camera::getRepulsorsAccel()
@@ -953,11 +961,16 @@ Camera2D::Vector2 Camera2D::Camera::getRepulsorsAccel()
 	{
 		float d = (m_centre - m_repulsors[i].getPosition()).length();
 
-		if (d > 0 && d < 300.f) //DESIRED_SEPARATION)
+		if (d > 0 && d < m_repulsors[i].getRange())
 		{
 			Vector2 diff = (m_centre - m_repulsors[i].getPosition());
+			float B = 1000.f;
+			float M = 0.5f;
+
+			d *= 1.f / m_repulsors[i].getStrength();
+			float U = (B / pow(d, M)); //(-A / pow(d, N));
 			diff = diff.normalize();
-			diff /= d;      // Weight by distance. Further away doesnt influence as much
+			diff = diff * U;
 			steer += diff;
 			count++;
 		}
@@ -966,25 +979,6 @@ Camera2D::Vector2 Camera2D::Camera::getRepulsorsAccel()
 	// Adds average difference of m_position to m_acceleration
 	if (count > 0)
 		steer /= (float)count;
-	if (steer.length() > 0)
-	{
-		// Steering = Desired - Velocity
-		steer = steer.normalize();
-		steer = steer * m_maxVelocity;
-		steer -= m_velocity;
-		steer.limit(m_accelerationRate);
-	}
-
-	if (m_allowedHorizontal && steer.x != 0.f)
-	{
-		m_timeSinceLastXAccel = 0.f;
-		m_zoomToFitActive = false;
-	}
-	if (m_allowedVertical && steer.y != 0.f)
-	{
-		m_timeSinceLastYAccel = 0.f;
-		m_zoomToFitActive = false;
-	}
 
 	return steer;
 }
@@ -1001,20 +995,48 @@ void Camera2D::Camera::moveBy(float x, float y)
 	m_bounds.y += (int)(m_bounds.y + y);
 }
 
-void Camera2D::Camera::allowedHorizontal(bool value)
+void Camera2D::Camera::setAllowedHorizontal(bool value)
 {
+	if (value == false)
+	{
+		m_velocity.x = 0.f;
+		m_acceleration.x = 0.f;
+	}
 	m_allowedHorizontal = value;
 }
 
-void Camera2D::Camera::allowedVertical(bool value)
+bool Camera2D::Camera::getAllowedHorizontal() const
 {
+	return m_allowedHorizontal;
+}
+
+void Camera2D::Camera::setAllowedVertical(bool value)
+{
+	if (value == false)
+	{
+		m_velocity.y = 0.f;
+		m_acceleration.y = 0.f;
+	}
 	m_allowedVertical = value;
 }
 
-void Camera2D::Camera::setLock(bool value)
+bool Camera2D::Camera::getAllowedVertical() const
 {
-	m_allowedHorizontal = value;
-	m_allowedVertical = value;
+	return m_allowedVertical;
+}
+
+void Camera2D::Camera::lockMotion()
+{
+	resetMotion();
+	m_allowedHorizontal = false;
+	m_allowedVertical = false;
+}
+
+void Camera2D::Camera::unlockMotion()
+{
+	resetMotion();
+	m_allowedHorizontal = true;
+	m_allowedVertical = true;
 }
 
 void Camera2D::Camera::addEffect(Effect& effect, const std::string & name)

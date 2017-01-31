@@ -1,10 +1,10 @@
 #pragma once
-#include "Affector.h"
+#include "Influencer.h"
 namespace Camera2D
 {
-	class Repulsor : public Affector
+	class Repulsor : public Influencer
 	{
 	public:
-		Repulsor() : Affector(Type::Repulsor) {}
+		Repulsor() : Influencer(Type::Repulsor) { m_strength = 10.f; }
 	};
 }

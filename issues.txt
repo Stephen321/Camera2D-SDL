@@ -8,3 +8,13 @@
 	test finding and modifying
 	
 	!!!make demo!!!
+    
+    individual stengths for attractors/repulsors (more tweaking)
+    
+    shaky centre pos after zoom to?
+    
+    
+    stuck in centre of attractors
+    
+    
+    test study
