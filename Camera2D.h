@@ -83,36 +83,8 @@ namespace Camera2D
 		void endEffect(const std::string& name, bool remove = false);
 		void endEffects();
 
-		//template is expected return type, if incorrect then data is lost from returned type
-		template<typename T>
-		T * findEffect(const std::string & name)
-		{
-			Effect* effect = nullptr;
-			bool found = false;
-			for (int i = 0; i < m_parallaxEffects.size(); i++)
-			{
-				if (m_parallaxEffects[i].getName() == name)
-				{
-					effect = &m_parallaxEffects[i];
-					found = true;
-					break;
-				}
-			}
-
-			for (int i = 0; i < m_shakeEffects.size() && found == false; i++)
-			{
-				if (m_shakeEffects[i].getName() == name)
-				{
-					effect = &m_shakeEffects[i];
-					break;
-				}
-			}
-
-			if (effect != nullptr)
-				return static_cast<T*>(effect);
-			else
-				return nullptr;
-		}
+		ParallaxEffect* findParallax(const std::string& name);
+		ShakeEffect* findShake(const std::string& name);
 		Effect * findEffect(const std::string & name);
 
 		Influencer* findInfluencer(const std::string& name);

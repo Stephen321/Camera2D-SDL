@@ -75,6 +75,43 @@ void Camera2D::Layer::draw(SDL_Renderer* target) const
 void Camera2D::Layer::update(const Vector2& vel, const SDL_Rect& bounds, const Vector2& shakeOffset)
 {
 	m_shakeOffset = shakeOffset;
+	float xChange = vel.x * m_scrollMultiplier;
+	float yChange = vel.y * m_scrollMultiplier;
+	if (m_scrollX)
+	{
+		m_sections[m_left].x += xChange;
+		m_sections[m_middle].x += xChange;
+		m_sections[m_right].x += xChange;
+
+		if (m_locked == false)
+		{
+			m_sections[m_left].y += yChange ;
+			m_sections[m_middle].y += yChange ;
+			m_sections[m_right].y += yChange ;
+		}
+	}
+	else
+	{
+		m_sections[m_left].y += yChange ;
+		m_sections[m_middle].y += yChange ;
+		m_sections[m_right].y += yChange ;
+
+		if (m_locked == false)
+		{
+			m_sections[m_left].x += xChange;
+			m_sections[m_middle].x += xChange;
+			m_sections[m_right].x += xChange;
+		}
+	}
+
+	m_sections[m_left].dest.x = m_sections[m_left].x;
+	m_sections[m_left].dest.y = m_sections[m_left].y;
+	m_sections[m_middle].dest.x = m_sections[m_middle].x;
+	m_sections[m_middle].dest.y = m_sections[m_middle].y;
+	m_sections[m_right].dest.x = m_sections[m_right].x;
+	m_sections[m_right].dest.y = m_sections[m_right].y;
+
+
 	if (m_scrollX)
 	{
 		if (m_sections[m_middle].dest.x > bounds.x + bounds.w)
@@ -92,40 +129,24 @@ void Camera2D::Layer::update(const Vector2& vel, const SDL_Rect& bounds, const V
 			positionSection(bounds, m_right, 1);
 		}
 	}
-
-	if (m_scrollX)
-	{
-		m_sections[m_left].x += vel.x * m_scrollMultiplier;
-		m_sections[m_middle].x += vel.x * m_scrollMultiplier;
-		m_sections[m_right].x += vel.x * m_scrollMultiplier;
-
-		if (m_locked == false)
-		{
-			m_sections[m_left].y += vel.y * m_scrollMultiplier;
-			m_sections[m_middle].y += vel.y * m_scrollMultiplier;
-			m_sections[m_right].y += vel.y * m_scrollMultiplier;
-		}
-	}
 	else
 	{
-		m_sections[m_left].y += vel.y * m_scrollMultiplier;
-		m_sections[m_middle].y += vel.y * m_scrollMultiplier;
-		m_sections[m_right].y += vel.y * m_scrollMultiplier;
-
-		if (m_locked == false)
+		if (m_sections[m_middle].dest.y > bounds.y + bounds.h)
 		{
-			m_sections[m_left].x += vel.x * m_scrollMultiplier;
-			m_sections[m_middle].x += vel.x * m_scrollMultiplier;
-			m_sections[m_right].x += vel.x * m_scrollMultiplier;
+			m_right = m_middle;
+			m_middle = m_left;
+			m_left = clamp(m_left - 1, 0, SECTIONS);
+			positionSection(bounds, m_left, 0, -1);
+		}
+		else if (m_sections[m_middle].dest.y + bounds.h < bounds.y)
+		{
+			m_left = m_middle;
+			m_middle = m_right;
+			m_right = clamp(m_right + 1, 0, SECTIONS);
+			positionSection(bounds, m_right, 0, 1);
 		}
 	}
 
-	m_sections[m_left].dest.x = m_sections[m_left].x;
-	m_sections[m_left].dest.y = m_sections[m_left].y;
-	m_sections[m_middle].dest.x = m_sections[m_middle].x;
-	m_sections[m_middle].dest.y = m_sections[m_middle].y;
-	m_sections[m_right].dest.x = m_sections[m_right].x;
-	m_sections[m_right].dest.y = m_sections[m_right].y;
 }
 
 Camera2D::Layer::~Layer()

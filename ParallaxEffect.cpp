@@ -50,7 +50,7 @@ Camera2D::Layer* Camera2D::ParallaxEffect::getLayer(const std::string & name)
 {
 	if (m_layers.find(name) != m_layers.end())
 	{
-		&m_layers.at(name);
+		return &m_layers.at(name);
 	}
 	else
 	{

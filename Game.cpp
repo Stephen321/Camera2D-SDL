@@ -49,7 +49,6 @@ bool Game::initialize(const char* title, int width, int height, int flags)
 	//if set to less than 3 then copy of texture is used
 	pe.addLayer("stars", Camera2D::Layer("assets/stars", 0.2f));
 	pe.addLayer("mountains", Camera2D::Layer("assets/mountains", 0.6f, 7));
-	pe.addLayer("surface", Camera2D::Layer("assets/surface", 2.f, 9));
 	m_camera.addEffect(pe, "parallax");
 
 	//create shake effect
@@ -148,30 +147,50 @@ void Game::handleEvents()
 				break;
 			case SDLK_o: //increase parallax stars scroll speed
 			{
-				Camera2D::Layer * layer = m_camera.findEffect<Camera2D::ParallaxEffect>("parallax")->getLayer("surface");
-				layer->setScrollMultiplier(layer->getScrollMultiplier() + 0.1f);
-				std::cout << "Surface scroll multiplier rate: " << layer->getScrollMultiplier() << std::endl;
+				Camera2D::ParallaxEffect * pe = m_camera.findParallax("parallax");
+				if (pe != nullptr)
+				{
+					Camera2D::Layer* layer = pe->getLayer("mountains");
+					if (layer != nullptr)
+					{
+						layer->setScrollMultiplier(layer->getScrollMultiplier() + 0.1f);
+						std::cout << "Mountain scroll multiplier rate: " << layer->getScrollMultiplier() << std::endl;
+					}
+				}
 				break;
 			}
 			case SDLK_k: //decrease parallax stars scroll speed
-			{ 
-				Camera2D::Layer * layer = m_camera.findEffect<Camera2D::ParallaxEffect>("parallax")->getLayer("surface");
-				layer->setScrollMultiplier(layer->getScrollMultiplier() - 0.1f);
-				std::cout << "Surface scroll multiplier rate: " << layer->getScrollMultiplier() << std::endl;
+			{
+				Camera2D::ParallaxEffect * pe = m_camera.findParallax("parallax");
+				if (pe != nullptr)
+				{
+					Camera2D::Layer* layer = pe->getLayer("mountains");
+					if (layer != nullptr)
+					{
+						layer->setScrollMultiplier(layer->getScrollMultiplier() - 0.1f);
+						std::cout << "Mountain scroll multiplier rate: " << layer->getScrollMultiplier() << std::endl;
+					}
+				}
 				break;
 			}
 			case SDLK_i: //increase shake magnitude
 			{
-				Camera2D::ShakeEffect * shakeEffect = m_camera.findEffect<Camera2D::ShakeEffect>("shake");
-				shakeEffect->setMagnitude(shakeEffect->getMagnitude() + 0.1f);
-				std::cout << "Shake magnitude: " << shakeEffect->getMagnitude() << std::endl;
+				Camera2D::ShakeEffect * shakeEffect = m_camera.findShake("shake");
+				if (shakeEffect != nullptr)
+				{
+					shakeEffect->setMagnitude(shakeEffect->getMagnitude() + 0.1f);
+					std::cout << "Shake magnitude: " << shakeEffect->getMagnitude() << std::endl;
+				}
 				break;
 			}
 			case SDLK_j: //decrease shake magnitude
-			{ //TODO press this at the same time you move left/right
-				Camera2D::ShakeEffect * shakeEffect = m_camera.findEffect<Camera2D::ShakeEffect>("shake");
-				shakeEffect->setMagnitude(shakeEffect->getMagnitude() - 0.1f);
-				std::cout << "Shake magnitude: " << shakeEffect->getMagnitude() << std::endl;
+			{
+				Camera2D::ShakeEffect * shakeEffect = m_camera.findShake("shake");
+				if (shakeEffect != nullptr)
+				{
+					shakeEffect->setMagnitude(shakeEffect->getMagnitude() - 0.1f);
+					std::cout << "Shake magnitude: " << shakeEffect->getMagnitude() << std::endl;
+				}
 				break;
 			}
 			default:

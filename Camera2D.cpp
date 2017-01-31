@@ -554,6 +554,32 @@ void Camera2D::Camera::endEffects()
 	}
 }
 
+Camera2D::ParallaxEffect* Camera2D::Camera::findParallax(const std::string& name)
+{
+	for (int i = 0; i < m_parallaxEffects.size(); i++)
+	{
+		if (m_parallaxEffects[i].getName() == name)
+		{
+			return &m_parallaxEffects[i];
+		}
+	}
+
+	return nullptr;
+}
+
+Camera2D::ShakeEffect* Camera2D::Camera::findShake(const std::string& name)
+{
+	for (int i = 0; i < m_shakeEffects.size(); i++)
+	{
+		if (m_shakeEffects[i].getName() == name)
+		{
+			return &m_shakeEffects[i];
+		}
+	}
+
+	return nullptr;
+}
+
 Camera2D::Effect * Camera2D::Camera::findEffect(const std::string & name)
 {
 	Effect* effect = nullptr;
