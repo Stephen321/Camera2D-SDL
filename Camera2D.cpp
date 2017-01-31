@@ -354,8 +354,8 @@ void Camera2D::Camera::resetZoomRatio()
 		}
 		else
 		{
-			m_zoomTarget.x = m_zoom.x + halfDiff;
-			m_zoomTarget.y = m_zoom.y - halfDiff;
+			m_zoomTarget.x = m_zoom.x - halfDiff;
+			m_zoomTarget.y = m_zoom.y + halfDiff;
 		}
 		m_ratioResetting = true;
 		zoomTo(m_zoomTarget);
