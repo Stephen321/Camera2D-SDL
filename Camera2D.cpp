@@ -399,14 +399,14 @@ void Camera2D::Camera::zoomToFit(const std::vector<Point>& points, bool keepZoom
 
 		float desiredSize;
 		float windowSize;
-		if (maxX - minX > maxY - minY)
+		if (abs(maxX - minX) > abs(maxY - minY))
 		{
-			desiredSize = maxX - minX;
+			desiredSize = abs(maxX - minX);
 			windowSize = m_windowWidth;
 		}
 		else
 		{
-			desiredSize = maxY - minY;
+			desiredSize = abs(maxY - minY);
 			windowSize = m_windowHeight;
 		}
 
@@ -416,8 +416,8 @@ void Camera2D::Camera::zoomToFit(const std::vector<Point>& points, bool keepZoom
 	else
 	{
 		Vector2 zoomTarget;
-		zoomTarget.x = (maxX - minX) / m_windowWidth;
-		zoomTarget.y = (maxY - minY) / m_windowHeight;
+		zoomTarget.x = abs(maxX - minX) / m_windowWidth;
+		zoomTarget.y = abs(maxY - minY) / m_windowHeight;
 		zoomTo(zoomTarget);
 	}
 
