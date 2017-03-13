@@ -276,12 +276,12 @@ void Camera2D::Camera::zoom(int dir)
 	changeBoundsZoom();
 }
 
-void Camera2D::Camera::zoomTo(const Vector2& target)
+void Camera2D::Camera::zoomTo(const Vector2& target, float time)
 {
-	zoomTo(target.x, target.y);
+	zoomTo(target.x, target.y, time);
 }
 
-void Camera2D::Camera::zoomTo(float targetX, float targetY) 
+void Camera2D::Camera::zoomTo(float targetX, float targetY, float time)
 {
 	targetX = clampZoom(targetX);
 	targetY = clampZoom(targetY);
@@ -296,7 +296,7 @@ void Camera2D::Camera::zoomTo(float targetX, float targetY)
 	m_zoomToMaxTime = ((m_zoomTarget - m_zoomStart).length()) / m_zoomToSpeed;
 }
 
-void Camera2D::Camera::zoomTo(float target)
+void Camera2D::Camera::zoomTo(float target, float time)
 {
 	target = (target <= 0.f) ? 0.1f : target;
 
@@ -317,6 +317,10 @@ void Camera2D::Camera::zoomTo(float target)
 	m_zoomToActive = true;
 	m_zoomToTime = 0.f;
 	m_zoomToMaxTime = ((m_zoomTarget - m_zoomStart).length()) / m_zoomToSpeed;
+	if (time >= 0.f)
+	{
+		m_zoomToMaxTime = time;
+	}
 }
 
 void Camera2D::Camera::zoomToFit(const std::vector<SDL_Rect>& rects, bool keepZoomRatio, float time)
@@ -462,7 +466,7 @@ void Camera2D::Camera::zoomToFit(const std::vector<Point>& points, bool keepZoom
 	else
 		m_zoomToFitMaxTime = m_zoomToMaxTime;
 
-	if (time != -1.f) //user specified a time
+	if (time >= 0.f) //user specified a time
 	{
 		m_zoomToFitMaxTime = time;
 		m_zoomToMaxTime = time;

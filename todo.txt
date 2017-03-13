@@ -1,19 +1,19 @@
 ---do?
-refactor
-change folder structure
-ignore: need to fix attractor/repulsor??
-ignore: rotation functionality
+TDD
+    crc - no need?
+    class diagram - wont notice?
+    sequence diagram - terrible already and wont notice
+GDD
+    need to update any manual tests/videos? dont think so
+    
 ignore: start with a certain zoom instead of (1, 1), can use setZoom but bool to check if updating for setZoomMinMax is weird
-ignore: set zoom min max and it will zoom to get back to right size based on time, workaround with setZoom(getZoomMax/min)
-ignore: could fix up the motion cause of the no key release
 
 
 ---b4demo
 fixed bug with zoom to fit
 	*youtube video with timestamps
 	*how to use worldToScreen functions
-allow user to specify time of zoom to fit (0 for instant, -1 for default) !!!Document this!!!
-document that zoom to fit takes priority over deceleration but not while key pressing 
+can set zoom so it will start at what the user wants
+allow user to specify time of zoom to fit (0 for instant, -1 for default) 
 set zoom functiuonaly and getMax and getMin zoom
-restrict centre (if zooming outside bounds then continue as normal but stop movement at restrict bounds , (zoom continues?))
-learn keys for demo
+restrict centre (if zooming outside bounds then continue as normal but stop movement at restrict bounds , zoom continues)
