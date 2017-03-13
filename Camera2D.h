@@ -59,9 +59,12 @@ namespace Camera2D
 		void zoomTo(float target); 
 		void zoomTo(const Vector2& target);
 		void zoomTo(float targetX, float targetY);
-		void zoomToFit(const std::vector<Point>& points, bool keepZoomRatio = true); 
-		void zoomToFit(const std::vector<SDL_Rect>& rects, bool keepZoomRatio = true);
+		void zoomToFit(const std::vector<Point>& points, bool keepZoomRatio = true, float time = -1.f);
+		void zoomToFit(const std::vector<SDL_Rect>& rects, bool keepZoomRatio = true, float time = -1.f);
 		void resetZoomRatio();
+		void setZoom(float zoomAmount);
+		float getZoomMax() const;
+		float getZoomMin() const;
 		void update(float deltaTime);
 		void render();
 		void moveBy(float x, float y);
@@ -90,6 +93,9 @@ namespace Camera2D
 		Influencer* findInfluencer(const std::string& name);
 
 		void resetMotion();
+
+		void restrictCentre(SDL_Rect restrictBounds);
+		void unrestrictCentre();
 
 		//Influencers
 		void addInfluencer(Influencer& influencer, const std::string& name = "");
@@ -173,5 +179,10 @@ namespace Camera2D
 		float m_zoomToMaxTime;
 
 		bool m_ratioResetting;
+
+		bool m_updating;
+
+		bool m_restrictCentre;
+		SDL_Rect m_restrictBounds;
 	};
 }

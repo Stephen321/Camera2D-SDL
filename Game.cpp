@@ -59,6 +59,7 @@ bool Game::initialize(const char* title, int width, int height, int flags)
 	se.setProps(duration, speed, magnitude);
 	m_camera.addEffect(se, "shake");
 
+	m_camera.restrictCentre({ 0,0, 1000, 1000 });
 	return true;
 }
 

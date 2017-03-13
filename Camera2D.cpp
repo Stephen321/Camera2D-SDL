@@ -15,6 +15,8 @@ Camera2D::Camera::Camera()
 	, m_allowedHorizontal(true)
 	, m_allowedVertical(true)
 	, m_bounds({0,0,0,0})
+	, m_updating(false)
+	, m_restrictCentre(false)
 {
 }
 
@@ -193,9 +195,17 @@ void Camera2D::Camera::setZoomMinMax(float min, float max)
 	m_minZoom = min;
 	m_maxZoom = max;
 
-	m_zoomTarget.x = clampZoom(m_zoom.x);
-	m_zoomTarget.y = clampZoom(m_zoom.y);
-	zoomTo(m_zoomTarget);
+	Vector2 zoomTarget;
+	zoomTarget.x = clampZoom(m_zoom.x);
+	zoomTarget.y = clampZoom(m_zoom.y);
+	if (m_updating)
+	{
+		zoomTo(zoomTarget);
+	}
+	else
+	{
+		changeBoundsZoom();
+	}
 }
 
 void Camera2D::Camera::pan(int xDir, int yDir)
@@ -290,6 +300,7 @@ void Camera2D::Camera::zoomTo(float target)
 {
 	target = (target <= 0.f) ? 0.1f : target;
 
+	//clampZoom here?
 	if (target < m_maxZoom)
 	{
 		target = m_maxZoom;
@@ -308,7 +319,7 @@ void Camera2D::Camera::zoomTo(float target)
 	m_zoomToMaxTime = ((m_zoomTarget - m_zoomStart).length()) / m_zoomToSpeed;
 }
 
-void Camera2D::Camera::zoomToFit(const std::vector<SDL_Rect>& rects, bool keepZoomRatio)
+void Camera2D::Camera::zoomToFit(const std::vector<SDL_Rect>& rects, bool keepZoomRatio, float time)
 {
 	if (rects.size() < 2)
 		return;
@@ -339,7 +350,7 @@ void Camera2D::Camera::zoomToFit(const std::vector<SDL_Rect>& rects, bool keepZo
 	points.push_back(Point(minX, minY)); //min
 	points.push_back(Point(maxX, maxY)); //max
 
-	zoomToFit(points, keepZoomRatio);
+	zoomToFit(points, keepZoomRatio, time);
 }
 
 void Camera2D::Camera::resetZoomRatio()
@@ -362,9 +373,30 @@ void Camera2D::Camera::resetZoomRatio()
 	}
 }
 
-void Camera2D::Camera::zoomToFit(const std::vector<Point>& points, bool keepZoomRatio)
+void Camera2D::Camera::setZoom(float zoomAmount)
+{
+	m_zoomToFitActive = false;
+	m_zoomToMaxTime = 0.f;
+	m_zoom.x = clampZoom(zoomAmount);
+	m_zoom.y = clampZoom(zoomAmount);
+	changeBoundsZoom();
+}
+
+float Camera2D::Camera::getZoomMax() const
+{
+	return m_maxZoom;
+}
+
+float Camera2D::Camera::getZoomMin() const
+{
+	return m_minZoom;
+}
+
+void Camera2D::Camera::zoomToFit(const std::vector<Point>& points, bool keepZoomRatio, float time)
 {
 	if (points.size() < 2)
+		return;
+	if (m_timeSinceLastXAccel < 0.05f || m_timeSinceLastYAccel < 0.05f) //if moving with key press on one of the axes has been recently pressed
 		return;
 	float minX = (float)INT_MAX;
 	float minY = (float)INT_MAX;
@@ -399,14 +431,16 @@ void Camera2D::Camera::zoomToFit(const std::vector<Point>& points, bool keepZoom
 
 		float desiredSize;
 		float windowSize;
-		if (abs(maxX - minX) > abs(maxY - minY))
+		float xSize = abs(maxX - minX);
+		float ySize = abs(maxY - minY);
+		if (xSize / m_windowWidth > ySize / m_windowHeight)
 		{
-			desiredSize = abs(maxX - minX);
+			desiredSize = xSize;
 			windowSize = m_windowWidth;
 		}
 		else
 		{
-			desiredSize = abs(maxY - minY);
+			desiredSize = ySize;
 			windowSize = m_windowHeight;
 		}
 
@@ -428,18 +462,22 @@ void Camera2D::Camera::zoomToFit(const std::vector<Point>& points, bool keepZoom
 	else
 		m_zoomToFitMaxTime = m_zoomToMaxTime;
 
+	if (time != -1.f) //user specified a time
+	{
+		m_zoomToFitMaxTime = time;
+		m_zoomToMaxTime = time;
+	}
 	m_acceleration.limit(0.f);
 	m_velocity.limit(0.f);
-
 }
 
 void Camera2D::Camera::update(float deltaTime)
 {
+	m_updating = true;
 	updateMotion(deltaTime);
 	updateZoom(deltaTime);
 	updateEffects(deltaTime);
 }
-
 
 void Camera2D::Camera::startEffect(Effect::Type type)
 { 
@@ -639,6 +677,17 @@ void Camera2D::Camera::resetMotion()
 	m_velocity.y = 0.f;
 }
 
+void Camera2D::Camera::restrictCentre(SDL_Rect restrictBounds)
+{
+	m_restrictCentre = true;
+	m_restrictBounds = restrictBounds;
+}
+
+void Camera2D::Camera::unrestrictCentre()
+{
+	m_restrictCentre = false;
+}
+
 void Camera2D::Camera::removeEffect(const std::string & name)
 {
 	endEffect(name);
@@ -733,11 +782,15 @@ float Camera2D::Camera::getAttractorStopVel() const
 
 void Camera2D::Camera::updateMotion(float deltaTime)
 {
-	if (m_zoomToFitActive)
+	if (m_zoomToFitActive) 
 	{
 		m_acceleration.limit(0.f);
 		m_velocity.limit(0.f);
-		float percent = m_zoomToFitTime / m_zoomToFitMaxTime;
+		float percent = 1.f;
+		if (m_zoomToFitMaxTime != 0.f)
+		{
+			percent = m_zoomToFitTime / m_zoomToFitMaxTime;
+		}
 		if (percent > 1.f)
 		{
 			m_centre = m_zoomToFitTarget;
@@ -758,6 +811,44 @@ void Camera2D::Camera::updateMotion(float deltaTime)
 
 		m_centre += m_velocity * deltaTime;
 		m_velocity.limit(m_maxVelocity);
+	}
+	
+	//if centre is restricted
+	if (m_restrictCentre)
+	{
+		bool stopZoomTo = false;
+		if (m_centre.x < m_restrictBounds.x)
+		{
+			m_centre.x = m_restrictBounds.x;
+			m_acceleration.x = 0.f;
+			m_velocity.x = 0.f;
+			stopZoomTo = true;
+		}
+		else if (m_centre.x > m_restrictBounds.x + m_restrictBounds.w)
+		{
+			m_centre.x = m_restrictBounds.x + m_restrictBounds.w;
+			m_acceleration.x = 0.f;
+			m_velocity.x = 0.f;
+			stopZoomTo = true;
+		}
+		if (m_centre.y < m_restrictBounds.y)
+		{
+			m_centre.y = m_restrictBounds.y;
+			m_acceleration.y = 0.f;
+			m_velocity.y = 0.f;
+			stopZoomTo = true;
+		}
+		else if (m_centre.y > m_restrictBounds.y + m_restrictBounds.h)
+		{
+			m_centre.y = m_restrictBounds.y + m_restrictBounds.h;
+			m_acceleration.y = 0.f;
+			m_velocity.y = 0.f;
+			stopZoomTo = true;
+		}
+		if (stopZoomTo)
+		{
+			m_zoomToFitActive = false;
+		}
 	}
 
 	m_timeSinceLastXAccel += deltaTime;
@@ -800,14 +891,11 @@ void Camera2D::Camera::updateZoom(float deltaTime)
 { 
 	if (m_zoomToActive)
 	{
-		if (m_zoomToMaxTime == 0.f)
+		float percent = 1.f;
+		if (m_zoomToMaxTime != 0.f)
 		{
-			m_zoom = m_zoomTarget;
-			m_zoomToActive = false;
-			m_ratioResetting = false;
-			return;
+			percent = m_zoomToTime / m_zoomToMaxTime;
 		}
-		float percent = m_zoomToTime / m_zoomToMaxTime;
 		if (percent > 1.f)
 		{
 			m_zoom = m_zoomTarget;
