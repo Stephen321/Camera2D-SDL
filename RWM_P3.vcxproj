@@ -79,7 +79,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)dependecies\SDL2-2.0.4\include;$(ProjectDir)dependecies\SDL2_image-2.0.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)dependecies\SDL2-2.0.4\include;$(ProjectDir)dependecies\SDL2_image-2.0.1\include;$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -102,7 +102,7 @@ echo D|xcopy /E /Y "$(ProjectDir)assets" "$(TargetDir)assets"
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)dependecies\SDL2-2.0.4\include;$(ProjectDir)dependecies\SDL2_image-2.0.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)dependecies\SDL2-2.0.4\include;$(ProjectDir)dependecies\SDL2_image-2.0.1\include;$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -125,7 +125,7 @@ echo D|xcopy /E /Y "$(ProjectDir)assets" "$(TargetDir)assets"
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)dependecies\SDL2-2.0.4\include;$(ProjectDir)dependecies\SDL2_image-2.0.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)dependecies\SDL2-2.0.4\include;$(ProjectDir)dependecies\SDL2_image-2.0.1\include;$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -151,7 +151,7 @@ echo D|xcopy /E /Y "$(ProjectDir)assets" "$(TargetDir)assets"
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)dependecies\SDL2-2.0.4\include;$(ProjectDir)dependecies\SDL2_image-2.0.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)dependecies\SDL2-2.0.4\include;$(ProjectDir)dependecies\SDL2_image-2.0.1\include;$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -169,37 +169,6 @@ echo D|xcopy /E /Y "$(ProjectDir)assets" "$(TargetDir)assets"
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Influencer.cpp" />
-    <ClCompile Include="Camera2D.cpp" />
-    <ClCompile Include="Effect.cpp" />
-    <ClCompile Include="Game.cpp" />
-    <ClCompile Include="Layer.cpp" />
-    <ClCompile Include="LTimer.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="ParallaxEffect.cpp" />
-    <ClCompile Include="PerlinNoise.cpp" />
-    <ClCompile Include="Renderer.cpp" />
-    <ClCompile Include="ShakeEffect.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Influencer.h" />
-    <ClInclude Include="Attractor.h" />
-    <ClInclude Include="BasicTypes.h" />
-    <ClInclude Include="Camera2D.h" />
-    <ClInclude Include="Effect.h" />
-    <ClInclude Include="Game.h" />
-    <ClInclude Include="Layer.h" />
-    <ClInclude Include="LTimer.h" />
-    <ClInclude Include="ParallaxEffect.h" />
-    <ClInclude Include="PerlinNoise.h" />
-    <ClInclude Include="Repulsor.h" />
-    <ClInclude Include="ShakeEffect.h" />
-    <ClInclude Include="stdafx.h" />
-    <ClInclude Include="targetver.h" />
-    <ClInclude Include="Renderer.h" />
-    <ClInclude Include="Vector2.h" />
-  </ItemGroup>
-  <ItemGroup>
     <Xml Include="Levels.xml">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
@@ -207,6 +176,37 @@ echo D|xcopy /E /Y "$(ProjectDir)assets" "$(TargetDir)assets"
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
       <SubType>Designer</SubType>
     </Xml>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\Attractor.h" />
+    <ClInclude Include="include\BasicTypes.h" />
+    <ClInclude Include="include\Camera2D.h" />
+    <ClInclude Include="include\Effect.h" />
+    <ClInclude Include="include\Game.h" />
+    <ClInclude Include="include\Influencer.h" />
+    <ClInclude Include="include\Layer.h" />
+    <ClInclude Include="include\LTimer.h" />
+    <ClInclude Include="include\ParallaxEffect.h" />
+    <ClInclude Include="include\PerlinNoise.h" />
+    <ClInclude Include="include\Renderer.h" />
+    <ClInclude Include="include\Repulsor.h" />
+    <ClInclude Include="include\ShakeEffect.h" />
+    <ClInclude Include="include\stdafx.h" />
+    <ClInclude Include="include\targetver.h" />
+    <ClInclude Include="include\Vector2.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Camera2D.cpp" />
+    <ClCompile Include="src\Effect.cpp" />
+    <ClCompile Include="src\Game.cpp" />
+    <ClCompile Include="src\Influencer.cpp" />
+    <ClCompile Include="src\Layer.cpp" />
+    <ClCompile Include="src\LTimer.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\ParallaxEffect.cpp" />
+    <ClCompile Include="src\PerlinNoise.cpp" />
+    <ClCompile Include="src\Renderer.cpp" />
+    <ClCompile Include="src\ShakeEffect.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
