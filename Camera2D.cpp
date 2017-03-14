@@ -278,16 +278,8 @@ void Camera2D::Camera::zoom(int dir)
 
 void Camera2D::Camera::zoomTo(const Vector2& target, float time)
 {
-	zoomTo(target.x, target.y, time);
-}
-
-void Camera2D::Camera::zoomTo(float targetX, float targetY, float time)
-{
-	targetX = clampZoom(targetX);
-	targetY = clampZoom(targetY);
-
-	m_zoomTarget.x = targetX; 
-	m_zoomTarget.y = targetY;
+	m_zoomTarget.x = clampZoom(target.x);
+	m_zoomTarget.y = clampZoom(target.y);
 
 	m_zoomStart = m_zoom;
 
@@ -298,17 +290,7 @@ void Camera2D::Camera::zoomTo(float targetX, float targetY, float time)
 
 void Camera2D::Camera::zoomTo(float target, float time)
 {
-	target = (target <= 0.f) ? 0.1f : target;
-
-	//clampZoom here?
-	if (target < m_maxZoom)
-	{
-		target = m_maxZoom;
-	}
-	else if (target > m_minZoom && m_minZoom != -1)
-	{
-		target = m_minZoom;
-	}
+	target = clampZoom(target);
 	m_zoomTarget.x = target; 
 	m_zoomTarget.y = target;
 
@@ -987,9 +969,9 @@ float Camera2D::Camera::clampZoom(float num)
 	{
 		num = m_minZoom;
 	}
-	if (num < m_zoomSpeed) //if zoom set to 0 or less then nothing will display so set to change amount
+	if (num < 0.025f) 
 	{
-		num = m_zoomSpeed;
+		num = 0.025f;
 	}
 	return num;
 }

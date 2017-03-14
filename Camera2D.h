@@ -58,7 +58,6 @@ namespace Camera2D
 		void zoom(int zoomDir);
 		void zoomTo(float target, float time = -1.f);
 		void zoomTo(const Vector2& target, float time = -1.f);
-		void zoomTo(float targetX, float targetY, float time = -1.f);
 		void zoomToFit(const std::vector<Point>& points, bool keepZoomRatio = true, float time = -1.f);
 		void zoomToFit(const std::vector<SDL_Rect>& rects, bool keepZoomRatio = true, float time = -1.f);
 		void resetZoomRatio();

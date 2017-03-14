@@ -41,7 +41,7 @@ bool Game::initialize(const char* title, int width, int height, int flags)
 	m_repulsorTexture = loadTexture("assets/repulsor.png");
 
 	//set unlimited min and max zoom
-	m_camera.setZoomMinMax(-1, -1.f);
+	m_camera.setZoomMinMax(-1.f, -1.f);
 
 	//create and add parallax effect named "parallax"
 	Camera2D::ParallaxEffect pe;
@@ -59,7 +59,7 @@ bool Game::initialize(const char* title, int width, int height, int flags)
 	se.setProps(duration, speed, magnitude);
 	m_camera.addEffect(se, "shake");
 
-	m_camera.restrictCentre({ 0,0, 1000, 1000 });
+	//m_camera.restrictCentre({ 0,0, 1000, 1000 });
 	return true;
 }
 
