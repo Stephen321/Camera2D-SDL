@@ -12,8 +12,8 @@ int main(int argc, char** argv)
 {
 	Game* game = new Game();
 
-	int width = 1080;// 1366;
-	int height = 520;// 768;
+	int width = 1366;
+	int height = 768;
 
 	game->initialize("DGPP Skelatol", width, height, SDL_WINDOW_INPUT_FOCUS);
 
