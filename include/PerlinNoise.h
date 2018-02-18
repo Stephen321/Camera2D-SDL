@@ -6,9 +6,17 @@
 
 namespace Camera2D
 {
+	/*! \brief Generates some perlin noise for use with the shake effect.
+	\see ShakeEffect
+	*/
 	class CAMERA2D_API PerlinNoise
 	{
 	public:
+		/*! \brief Generates some perlin noise.
+		\param x X value used in calculating perlin noise.
+		\param y Y value used in calculating perlin noise.
+		\return double
+		*/
 		static double noise(double x, double y);
 	private:
 		static inline double findnoise(double x, double y)

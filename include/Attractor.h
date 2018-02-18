@@ -4,6 +4,8 @@
 #include "Influencer.h"
 namespace Camera2D
 {
+	/*! \brief Causes the camera centre to be pulled towards the attractors centre.
+	*/
 	class CAMERA2D_API Attractor : public Influencer
 	{
 	public:

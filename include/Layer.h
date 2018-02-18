@@ -9,16 +9,48 @@
 
 namespace Camera2D
 {
+	/*! \brief A layer to be used with the parallax effect.
+	*/
 	class CAMERA2D_API Layer
 	{
 	public:
+		/*! \brief
+		\param path Path of the textures to load.
+		\param scrollMultiplier How fast to scroll.
+		\param sections How many different textures there are.
+		\param locked If locked to one axis.
+		*/
 		Layer(const std::string& path, float scrollMultiplier, int sections = 3, bool locked = true);
+
+		/*! \brief Initialise the layer.
+		\param scrollX Should the parallax be on the x or y axis.
+		\param renderer The renderer used to draw the parallax textures to.
+		\param bounds Bounds of the camera.
+		*/
 		void init(bool scrollX, SDL_Renderer* renderer, const SDL_Rect& bounds);
+
+		/*! \brief Draw the parallax effect to a SDL_Renderer.
+		\param target The renderer to draw to.
+		*/
 		void draw(SDL_Renderer* target) const;
+
+		/*! \brief Update the parallax effect.
+		\param vel Velocity of the camera.
+		\param bounds Bounds of the camera.
+		\param shakeOffset How much shake there is.
+		*/
 		void update(const Vector2& vel, const SDL_Rect& bounds, const Vector2& shakeOffset);
 		Layer& operator=(const Layer& rhs) { return *this; };
 		~Layer();
+
+		/*! \brief Set the scroll multiplier.
+		\param scrollMultiplier
+		*/
 		void setScrollMultiplier(float scrollMultiplier);
+
+		/*! \brief Get the scroll multiplier.
+		\return float
+		*/
 		float getScrollMultiplier() const;
 	private:
 		Vector2 m_shakeOffset;
