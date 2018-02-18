@@ -25,6 +25,14 @@ namespace Camera2D
 	class CAMERA2D_API Camera
 	{
 	public:
+		/*! \brief Brief description.
+		*         Brief description continued.
+		*  \see init()
+		*  \param void No parameters
+		*  \return no return
+		*
+		*  Detailed description starts here.
+		*/
 		Camera();
 		void init(int windowWidth, int windowHeight);
 		void setCentre(float x, float y);
