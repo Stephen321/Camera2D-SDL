@@ -2,6 +2,7 @@
 #define REPULSOR_H
 
 #include "Influencer.h"
+
 namespace Camera2D
 {
 	class CAMERA2D_API Repulsor : public Influencer

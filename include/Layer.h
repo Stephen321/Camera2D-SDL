@@ -3,9 +3,9 @@
 
 #include <vector>
 #include <string>
+#include "Config.h"
 #include "SDL2/SDL.h"
 #include "Vector2.h"
-#include "Config.h"
 
 namespace Camera2D
 {
