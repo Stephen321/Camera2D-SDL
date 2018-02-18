@@ -1,8 +1,8 @@
-#pragma once
+#ifndef SHAKEFFECT_H
+#define SHAKEFFECT_H
+
 #include "Effect.h"
 #include "Vector2.h"
-#include "PerlinNoise.h"
-#include "SDL.h"
 
 namespace Camera2D
 {
@@ -11,12 +11,11 @@ namespace Camera2D
 	const float SHAKE_DEFAULT_MAGNITUDE = 1.f;
 	const float SHAKE_DEFAULT_RANGE = 1000.f;
 
-	class ShakeEffect : public Effect
+	class CAMERA2D_API ShakeEffect : public Effect
 	{
 	public:
 		ShakeEffect() : Effect(Type::Shake) {};
 		void init();
-		void draw(SDL_Renderer* renderer);
 		void update(float deltaTime);
 		void setProps(float duration = SHAKE_DEFAULT_DURATION, float speed = SHAKE_DEFAULT_SPEED, float magnitude = SHAKE_DEFAULT_MAGNITUDE, float range = SHAKE_DEFAULT_RANGE);
 		void setDuration(float duration);
@@ -58,3 +57,5 @@ namespace Camera2D
 		float m_startRange;
 	};
 }
+
+#endif

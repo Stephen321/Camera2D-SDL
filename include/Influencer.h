@@ -1,10 +1,14 @@
-#pragma once
+#ifndef INFLUENCER_H
+#define INFLUENCER_H
+
 #include <string>
+#include "Config.h"
 #include "Vector2.h"
+
 namespace Camera2D
 {
 	const float DEFAULT_AFFECTOR_RANGE = 300.f;
-	class Influencer
+	class CAMERA2D_API Influencer
 	{
 	public:
 		enum class Type
@@ -30,3 +34,5 @@ namespace Camera2D
 		Type m_type;
 	};
 }
+
+#endif

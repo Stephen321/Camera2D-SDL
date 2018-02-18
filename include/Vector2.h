@@ -1,8 +1,11 @@
-#pragma once
+#ifndef VECTOR2_H
+#define VECTOR2_H
+
+#include "Config.h"
 
 namespace Camera2D
 {
-	typedef struct Vector2 {
+	typedef struct CAMERA2D_API Vector2 {
 		Vector2(float _x, float _y)
 			: x(_x), y(_y) {};
 		Vector2()
@@ -70,3 +73,5 @@ namespace Camera2D
 		float y;
 	} Size, Point;
 }
+
+#endif

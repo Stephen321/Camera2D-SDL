@@ -1,10 +1,12 @@
-#pragma once
+#ifndef PERLINNOISE_H
+#define PERLINNOISE_H
 
 //http://discuss.cocos2d-x.org/t/tutorial-cocos2d-camera-shake-effect-from-unity-updates/27215
+#include "Config.h"
 
 namespace Camera2D
 {
-	class PerlinNoise
+	class CAMERA2D_API PerlinNoise
 	{
 	public:
 		static double noise(double x, double y);
@@ -23,3 +25,5 @@ namespace Camera2D
 		}
 	};
 }
+
+#endif

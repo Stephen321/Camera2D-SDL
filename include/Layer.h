@@ -1,13 +1,15 @@
-#pragma once
-#include "SDL.h"
-#include "SDL_image.h"
+#ifndef LAYER_H
+#define LAYER_H
+
 #include <vector>
 #include <string>
-#include <iostream>
+#include "SDL2/SDL.h"
 #include "Vector2.h"
+#include "Config.h"
+
 namespace Camera2D
 {
-	class Layer
+	class CAMERA2D_API Layer
 	{
 	public:
 		Layer(const std::string& path, float scrollMultiplier, int sections = 3, bool locked = true);
@@ -41,3 +43,5 @@ namespace Camera2D
 		float m_scrollMultiplier;
 	};
 }
+
+#endif

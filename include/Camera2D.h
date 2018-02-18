@@ -1,13 +1,13 @@
-#pragma once
+#ifndef CAMERA2D_H
+#define CAMERA2D_H
 
-#include "SDL.h"
 #include <vector>
+#include "SDL2\SDL.h"
 #include "ParallaxEffect.h"
 #include "ShakeEffect.h"
 #include "Attractor.h"
 #include "Repulsor.h"
 
-using namespace std;
 
 namespace Camera2D
 {
@@ -22,11 +22,11 @@ namespace Camera2D
 	const float DEFAULT_MAX_ZOOM = 0.5f;
 
 
-	class Camera
+	class CAMERA2D_API Camera
 	{
 	public:
 		Camera();
-		void init(int windowWidth, int windowHeight, SDL_Renderer* renderer);
+		void init(int windowWidth, int windowHeight);
 		void setCentre(float x, float y);
 		void setCentre(const Point& p);
 		void setSize(int width, int height);
@@ -65,7 +65,7 @@ namespace Camera2D
 		float getZoomMax() const;
 		float getZoomMin() const;
 		void update(float deltaTime);
-		void render();
+		void drawParallax();
 		void moveBy(float x, float y);
 
 		void setAllowedHorizontal(bool value);
@@ -135,7 +135,6 @@ namespace Camera2D
 
 
 		SDL_Rect m_bounds;
-		SDL_Renderer* m_renderer;
 
 		int m_windowWidth;
 		int m_windowHeight;
@@ -185,3 +184,5 @@ namespace Camera2D
 		SDL_Rect m_restrictBounds;
 	};
 }
+
+#endif

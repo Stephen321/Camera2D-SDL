@@ -20,13 +20,12 @@ Camera2D::Camera::Camera()
 {
 }
 
-void Camera2D::Camera::init(int windowWidth, int windowHeight, SDL_Renderer * renderer)
+void Camera2D::Camera::init(int windowWidth, int windowHeight)
 {
 	m_windowWidth = windowWidth;
 	m_windowHeight = windowHeight;
 
 	m_bounds = { 0, 0, m_windowWidth, m_windowHeight };
-	m_renderer = renderer;
 }
 
 
@@ -1083,10 +1082,10 @@ Camera2D::Vector2 Camera2D::Camera::getRepulsorsAccel()
 	return steer;
 }
 
-void Camera2D::Camera::render()
+void Camera2D::Camera::drawParallax()
 {
 	if (m_currentParallax != 0)
-		m_currentParallax->draw(m_renderer);
+		m_currentParallax->draw();
 }
 
 void Camera2D::Camera::moveBy(float x, float y)
@@ -1147,8 +1146,8 @@ void Camera2D::Camera::addEffect(Effect& effect, const std::string & name)
 	switch (effect.getType())
 	{
 	case Effect::Type::Parallax:
-		m_parallaxEffects.push_back((static_cast<ParallaxEffect&>(effect)));
-		m_parallaxEffects.back().init(m_renderer, m_bounds);
+		m_parallaxEffects.push_back((static_cast<ParallaxEffect&>(effect))); //copied here after cast so reference no longer matters
+		m_parallaxEffects.back().init(m_bounds);
 		break;
 	case Effect::Type::Shake:
 		m_shakeEffects.push_back((static_cast<ShakeEffect&>(effect)));

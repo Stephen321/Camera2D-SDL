@@ -1,10 +1,12 @@
-#pragma once
-#include <string>
+#ifndef EFFECT_H
+#define EFFECT_H
 
+#include <string>
+#include "Config.h"
 
 namespace Camera2D
 {
-	class Effect
+	class CAMERA2D_API Effect
 	{
 	public:
 		enum class Type {
@@ -23,3 +25,5 @@ namespace Camera2D
 		bool m_enabled;
 	};
 }
+
+#endif

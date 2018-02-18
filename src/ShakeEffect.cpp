@@ -1,13 +1,10 @@
 #include "ShakeEffect.h"
+#include "PerlinNoise.h"
 
 void Camera2D::ShakeEffect::init()
 {
 	setProps();
 	m_elapsedTime = 0.f;
-}
-
-void Camera2D::ShakeEffect::draw(SDL_Renderer * renderer)
-{
 }
 
 void Camera2D::ShakeEffect::update(float deltaTime)
