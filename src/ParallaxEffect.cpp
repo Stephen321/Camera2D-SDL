@@ -15,7 +15,7 @@ void Camera2D::ParallaxEffect::init(const SDL_Rect& bounds)
 	}
 }
 
-void Camera2D::ParallaxEffect::addLayer(const std::string& name, const Layer & layer)
+void Camera2D::ParallaxEffect::addLayer(const char* name, const Layer & layer)
 {
 	m_layers.insert(std::pair<std::string, Layer>(name, layer));
 }

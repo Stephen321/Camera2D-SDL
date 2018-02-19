@@ -262,31 +262,26 @@ namespace Camera2D
 		\return bool
 		*/
 		bool getAllowedVertical() const;
-
-
+		
 		/*! \brief Stop motion.
 		*/
 		void lockMotion();
-
 
 		/*! \brief Allow motion.
 		*/
 		void unlockMotion();
 
-
 		/*! \brief Add a new effect to the camera.
 		\param effect The effect to add.
 		\param name Name of the effect.
 		*/
-		void addEffect(Effect& effect, const std::string& name = "");
-
-
+		void addEffect(Effect& effect, const char* name = "");
+		
 		/*! \brief Remove an effect by name.
 		\param name Name of the effect to remove.
 		*/
 		void removeEffect(const std::string& name);
-
-
+		
 		/*! \brief Remove first effect added of a certain type.
 		\param type The type of effect to remove.
 		*/

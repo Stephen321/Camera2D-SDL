@@ -1,7 +1,7 @@
 #include "Layer.h"
 #include "SDL2\SDL_image.h"
 
-Camera2D::Layer::Layer(const std::string& path, float scrollMultiplier, int sections, bool locked)
+Camera2D::Layer::Layer(const char* path, float scrollMultiplier, int sections, bool locked)
 	: SECTIONS((sections < 3) ? 3 : sections) //has to be 3 sections at least
 	, m_sections(SECTIONS)
 	, m_textureSections(sections)

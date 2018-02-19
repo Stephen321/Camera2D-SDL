@@ -20,7 +20,7 @@ namespace Camera2D
 		\param sections How many different textures there are.
 		\param locked If locked to one axis.
 		*/
-		Layer(const std::string& path, float scrollMultiplier, int sections = 3, bool locked = true);
+		Layer(const char* path, float scrollMultiplier, int sections = 3, bool locked = true);
 
 		/*! \brief Initialise the layer.
 		\param scrollX Should the parallax be on the x or y axis.

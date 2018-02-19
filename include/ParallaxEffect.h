@@ -28,7 +28,7 @@ namespace Camera2D
 		\param name The name of the new layer.
 		\param layer The layer to add.
 		*/
-		void addLayer(const std::string& name, const Layer& layer);
+		void addLayer(const char* name, const Layer& layer);
 
 		/*! \brief Draw the parallax effect.
 		*/

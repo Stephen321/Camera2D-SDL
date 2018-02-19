@@ -1138,7 +1138,7 @@ void Camera2D::Camera::unlockMotion()
 	m_allowedVertical = true;
 }
 
-void Camera2D::Camera::addEffect(Effect& effect, const std::string & name)
+void Camera2D::Camera::addEffect(Effect& effect, const char* name)
 {
 	if (effect.getName() == "") //name hasnt been set yet
 		effect.setName(name);
