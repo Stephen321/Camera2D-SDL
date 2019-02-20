@@ -12,3 +12,7 @@ Issues:
 
 GDD, TDD, User Guide:
 https://drive.google.com/drive/folders/0B9RF991BhZlzS0s4MkRVbllfd2c?usp=sharing
+
+
+#### Full demo video (individual in google drive folder):  
+https://drive.google.com/open?id=0B9RF991BhZlzUlVUVW1QUmlXcUk
